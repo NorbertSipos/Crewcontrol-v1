@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* 1. DEFINE YOUR BRAND COLORS */
+@theme {
+  /* Brand Core */
+  --color-brand-primary: #0F172A;   /* Control Blue */
+  --color-brand-secondary: #334155; /* Slate System */
+  --color-brand-accent: #14B8A6;    /* Operational Mint */
+  --color-brand-accent-hover: #0D9488;
+  --color-brand-accent-light: #99F6E4;
+
+  /* Neutral System */
+  --color-neutral-bg: #F8FAFC;
+  --color-neutral-surface: #FFFFFF;
+  --color-neutral-border: #E2E8F0;
+  --color-neutral-text-main: #0F172A;
+  --color-neutral-text-muted: #64748B;
+
+  /* State Colors */
+  --color-state-success: #22C55E;
+  --color-state-warning: #F59E0B;
+  --color-state-error: #EF4444;
+}
+
+/* 2. GLOBAL STYLES */
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    /* A te új "Clean Canvas" hátteredet használjuk */
+    background-color: var(--color-neutral-bg); 
+    color: var(--color-neutral-text-main);
+    overflow-x: hidden;
+    font-family: sans-serif;
+  }
+}
+
+/* 3. SCROLLBAR CUSTOMIZATION */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-neutral-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-secondary);
+}
