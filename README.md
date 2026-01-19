@@ -1,4 +1,4 @@
-# HR Dashboard (CrewControl)
+# Team Management Dashboard & App (CrewControl)
 
 A modern B2B SaaS platform for workforce management with support for remote, on-site, and hybrid work configurations.
 
