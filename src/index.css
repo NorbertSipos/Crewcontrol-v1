@@ -50,3 +50,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-brand-secondary);
 }
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}

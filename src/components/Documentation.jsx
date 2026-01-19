@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Zap, Smartphone, Code, Search, 
   Layout, Clock, CreditCard, 
-  Headset, ArrowRight 
+  Headset, ArrowRight, BookOpen 
 } from 'lucide-react';
 
 const DocumentationPage = () => {
@@ -137,45 +137,48 @@ const DocumentationPage = () => {
       <span>
         {parts.map((part, i) => 
           part.toLowerCase() === highlight.toLowerCase() ? 
-            <span key={i} className="bg-yellow-200 text-slate-900 rounded px-0.5">{part}</span> : part
+            <span key={i} className="bg-purple-500/30 text-white rounded px-0.5 border border-purple-500/50">{part}</span> : part
         )}
       </span>
     );
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfaff] relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       
-      {/* --- BACKGROUND DECORATION --- */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-        <div className="absolute top-[15%] right-[-5%] w-[500px] h-[500px] bg-indigo-200/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[20%] left-[-10%] w-[600px] h-[600px] bg-purple-200/20 rounded-full blur-[120px]"></div>
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#4338ca 1px, transparent 1px), linear-gradient(90deg, #4338ca 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+      {/* --- AMBIENT BACKGROUND GLOWS --- */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[20%] left-[-10%] w-[600px] h-[600px] bg-purple-900/20 rounded-full blur-[120px] mix-blend-screen"></div>
+        <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] bg-indigo-900/20 rounded-full blur-[100px] mix-blend-screen"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)]"></div>
       </div>
 
       {/* --- HEADER --- */}
-      <header className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 pt-32 pb-16 px-6 relative overflow-hidden">
-        <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-6">Documentation</h1>
+      <header className="relative z-10 pt-32 pb-16 px-6 text-center">
+        <div className="max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-purple-300 text-sm font-semibold mb-8 shadow-[0_0_20px_rgba(168,85,247,0.15)] animate-in fade-in slide-in-from-top-4 duration-1000">
+            <BookOpen size={16} className="text-purple-400" /> 
+            <span className="tracking-wide uppercase text-xs font-bold">Knowledge Base</span>
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-white drop-shadow-2xl">
+            How can we <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">help you?</span>
+          </h1>
           
           {/* SEARCH BAR */}
-          <div className="max-w-xl mx-auto relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-            <input 
-              type="text" 
-              placeholder="Search guides, articles, or API docs..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 backdrop-blur-md transition-all"
-            />
+          <div className="max-w-xl mx-auto relative mt-10 group">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-400 transition-colors" size={20} />
+              <input 
+                type="text" 
+                placeholder="Search guides, articles, or API docs..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500/50 backdrop-blur-xl transition-all shadow-2xl"
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Separator */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none translate-y-[1px]">
-          <svg className="relative block w-full h-[60px] md:h-[100px]" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5,73.84-4.36,147.54,16.88,218.2,35.26,69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-1.11,1200,0.47V120H0Z" fill="#fcfaff"></path>
-          </svg>
         </div>
       </header>
 
@@ -184,54 +187,48 @@ const DocumentationPage = () => {
         
         {/* --- SIDEBAR MENU --- */}
         <aside className={`md:w-72 flex-shrink-0 space-y-2 ${searchQuery ? 'opacity-50 pointer-events-none' : ''}`}>
-          <div className="sticky top-8">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 px-4">Categories</h3>
+          <div className="sticky top-24">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 px-4">Categories</h3>
             {docCategories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 text-left ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300 text-left border ${
                   activeCategory === cat.id 
-                  ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30" 
-                  : "text-slate-600 hover:bg-white hover:shadow-sm"
+                  ? "bg-purple-600/10 border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)]" 
+                  : "border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200"
                 }`}
               >
-                {cat.icon}
+                <div className={`${activeCategory === cat.id ? "text-purple-400" : "opacity-70"}`}>
+                   {cat.icon}
+                </div>
                 {cat.title}
               </button>
             ))}
 
-            {/* --- NEW MODERN QUICK SUPPORT CARD --- */}
+            {/* --- SUPPORT CARD --- */}
             <div className="mt-10 relative group">
-              {/* Background Glow */}
-              <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-500"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+              <div className="relative bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl"></div>
 
-              {/* Glass Card */}
-              <div className="relative bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-white/50 shadow-xl overflow-hidden">
-
-                {/* Inner Decoration */}
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-emerald-100/50 rounded-full blur-2xl"></div>
-
-                {/* Header with Icon */}
                 <div className="flex items-center gap-4 mb-4 relative z-10">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                    <Headset size={24} className="text-white" />
+                  <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center border border-emerald-500/20">
+                    <Headset size={20} className="text-emerald-400" />
                   </div>
                   <div>
-                    <h4 className="font-black text-lg text-slate-900 leading-tight">Enterprise Support</h4>
-                    <p className="text-xs font-medium text-emerald-600 uppercase tracking-wider">24/7 Priority Access</p>
+                    <h4 className="font-bold text-sm text-white leading-tight">Enterprise Support</h4>
+                    <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">24/7 Priority Access</p>
                   </div>
                 </div>
 
-                {/* Description */}
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed relative z-10">
-                  Need immediate assistance? Our dedicated engineering team is ready to help you resolve critical issues.
+                <p className="text-xs text-slate-400 mb-6 leading-relaxed relative z-10">
+                  Need immediate assistance? Our dedicated engineering team is ready to help.
                 </p>
 
-                {/* Modern Button */}
-                <button className="w-full py-3 px-4 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl font-bold text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:shadow-emerald-500/25 flex items-center justify-center gap-2 group/btn relative z-10 cursor-pointer">
+                <button className="w-full py-3 px-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-emerald-500/30 text-white rounded-xl font-bold text-xs transition-all duration-300 flex items-center justify-center gap-2 group/btn relative z-10 cursor-pointer">
                   Open Live Chat
-                  <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform"/>
+                  <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform text-emerald-400"/>
                 </button>
               </div>
             </div>
@@ -244,20 +241,24 @@ const DocumentationPage = () => {
         <main className="flex-grow min-h-[500px]">
           {searchQuery.length > 0 ? (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Search size={20} className="text-purple-600" />
+              <h2 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
+                <Search size={20} className="text-purple-400" />
                 Search results for "{searchQuery}"
               </h2>
+              
               {filteredDocs.length === 0 && (
-                <p className="text-slate-500 italic">No documentation found matching your query.</p>
+                <div className="text-center py-20 bg-white/5 rounded-3xl border border-white/5 border-dashed">
+                    <p className="text-slate-500">No results found.</p>
+                </div>
               )}
+              
               {filteredDocs.map((doc, idx) => (
-                <div key={idx} className="bg-white/70 backdrop-blur-md p-8 rounded-[2rem] border border-white shadow-lg hover:shadow-xl transition-all">
-                  <div className="text-xs font-bold text-purple-500 uppercase mb-2 tracking-widest">{doc.category}</div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">
+                <div key={idx} className="bg-white/[0.02] backdrop-blur-md p-8 rounded-[2rem] border border-white/5 hover:bg-white/[0.04] transition-all group">
+                  <div className="text-xs font-bold text-purple-400 uppercase mb-3 tracking-widest">{doc.category}</div>
+                  <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-purple-200 transition-colors">
                     <HighlightedText text={doc.title} highlight={searchQuery} />
                   </h3>
-                  <p className="text-slate-600 leading-relaxed">
+                  <p className="text-slate-400 leading-relaxed">
                     <HighlightedText text={doc.body} highlight={searchQuery} />
                   </p>
                 </div>
@@ -265,21 +266,21 @@ const DocumentationPage = () => {
             </div>
           ) : (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500" key={activeCategory}>
-              <div className="flex items-center gap-3 mb-8">
-                 <div className="p-3 bg-white rounded-2xl shadow-sm text-purple-600">
+              <div className="flex items-center gap-4 mb-8">
+                 <div className="p-3 bg-purple-500/10 rounded-2xl border border-purple-500/20 text-purple-400">
                     {docCategories.find(c => c.id === activeCategory)?.icon}
                  </div>
-                 <h2 className="text-3xl font-bold text-slate-900">
+                 <h2 className="text-3xl font-bold text-white tracking-tight">
                    {docCategories.find(c => c.id === activeCategory)?.title}
                  </h2>
               </div>
 
               {filteredDocs.map((doc, idx) => (
-                <div key={idx} className="bg-white/70 backdrop-blur-md p-8 rounded-[2rem] border border-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <div key={idx} className="bg-white/[0.02] backdrop-blur-md p-8 rounded-[2rem] border border-white/5 hover:bg-white/[0.04] hover:border-purple-500/20 hover:shadow-[0_0_30px_rgba(168,85,247,0.05)] transition-all duration-300 group">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2 group-hover:text-purple-300 transition-colors">
                     {doc.title}
                   </h3>
-                  <p className="text-slate-600 leading-relaxed whitespace-pre-line">
+                  <p className="text-slate-400 leading-relaxed whitespace-pre-line text-sm md:text-base">
                     {doc.body}
                   </p>
                 </div>

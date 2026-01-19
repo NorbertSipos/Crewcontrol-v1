@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
-import { Menu, X, Check, ChevronDown, ChevronUp, ArrowRight, ShieldCheck, Briefcase, Smartphone, Play } from 'lucide-react';
+import { 
+  Check, ChevronDown, ChevronUp, ArrowRight, 
+  ShieldCheck, Briefcase, Smartphone, Play, Zap, Users, 
+  Clock, BarChart3, Globe, Star, Crown, Quote, 
+  UserCheck, Calendar, CheckCircle2, TrendingUp, Award, Lock
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const App = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   const toggleFaq = (index) => {
@@ -29,348 +34,588 @@ const App = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col font-sans text-slate-800 bg-white selection:bg-purple-200">
+    <div className="min-h-screen flex flex-col font-sans text-white bg-slate-950 selection:bg-purple-500/30 overflow-hidden">
       
-      {/* --- HERO WRAPPER (Colored Background) --- */}
-      <div className="relative bg-gradient-to-br from-purple-700 via-indigo-600 to-purple-700 pb-32 lg:pb-60 overflow-hidden">
+      {/* --- HERO SECTION --- */}
+      <div className="relative pb-32 lg:pb-48">
         
-        {/* Background Decor Shapes */}
+        {/* Background Effects */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-            <div className="absolute top-[-10%] right-[-5%] w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-[10%] left-[-10%] w-72 h-72 bg-purple-400/20 rounded-full blur-3xl"></div>
+           {/* Top Glow */}
+           <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-purple-600/20 rounded-full blur-[120px] mix-blend-screen"></div>
+           <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[100px] mix-blend-screen"></div>
+           
+           {/* Grid Floor */}
+           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)]"></div>
         </div>
 
-        {/* --- NAVBAR --- */}
-        <nav className="relative z-50 border-b border-white/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-20">
-              <div className="flex items-center">
-                <a href="#" className="flex items-center gap-2 cursor-pointer group">
-                  <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/30 group-hover:bg-white/30 transition-all duration-300">
-                      <span className="text-white font-bold text-xl">C</span>
-                  </div>
-                  <span className="text-2xl font-bold tracking-tight text-white group-hover:text-purple-100 transition-colors">CrewControl</span>
-                </a>
-              </div>
-              
-              {/* Desktop Menu */}
-              <div className="hidden md:flex items-center space-x-8">
-                {['Home', 'Features', 'Pricing', 'FAQ'].map((item) => (
-                    <a key={item} href={`#${item.toLowerCase().replace(/\s/g, '')}`} className="text-sm font-medium text-purple-100 hover:text-white transition-colors cursor-pointer relative group/nav">
-                        {item}
-                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover/nav:w-full"></span>
-                    </a>
-                ))}
-                
-                <div className="flex items-center gap-4 ml-4">
-                    <a href="#" className="text-white font-medium hover:text-purple-200 transition-colors cursor-pointer">Sign In</a>
-                    <button className="bg-white text-purple-700 px-6 py-2.5 rounded-full font-bold hover:bg-purple-50 hover:-translate-y-1 active:scale-95 transition-all duration-300 shadow-lg shadow-purple-900/20 cursor-pointer flex items-center gap-2">
-                    Get Started <ArrowRight size={16} />
-                    </button>
-                </div>
-              </div>
-
-              {/* Mobile menu button */}
-              <div className="md:hidden flex items-center">
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white p-2 hover:bg-white/10 rounded-lg cursor-pointer">
-                  {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
-              </div>
+        <section className="pt-32 px-4 text-center relative z-10 max-w-5xl mx-auto">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-purple-300 text-sm font-semibold mb-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+               <span className="relative flex h-2 w-2">
+                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                 <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+               </span>
+               v1.0 is live: AI Auto-Scheduling
             </div>
-          </div>
 
-          {/* Mobile Menu Dropdown */}
-          {isMenuOpen && (
-            <div className="md:hidden absolute top-20 left-0 w-full bg-indigo-900/95 backdrop-blur-md border-b border-white/10 p-4 space-y-2 shadow-xl z-50">
-              {['Features','Pricing', 'FAQ'].map((item) => (
-                  <a key={item} href="#" className="block py-3 text-base font-medium text-white border-b border-white/10" onClick={() => setIsMenuOpen(false)}>{item}</a>
-              ))}
-              <button className="w-full mt-4 bg-white text-purple-700 py-3 rounded-lg font-bold hover:bg-gray-100 transition cursor-pointer">Get Started</button>
-            </div>
-          )}
-        </nav>
-
-        {/* --- HERO CONTENT --- */}
-        <section className="pt-20 px-4 text-center relative z-10 max-w-5xl mx-auto">
-            
-            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+            <h1 className="text-6xl md:text-8xl font-black mb-8 tracking-tighter leading-tight drop-shadow-2xl">
               Your team,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-pink-200">in sync.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 animate-gradient">in sync.</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-purple-100 mb-10 max-w-3xl mx-auto leading-relaxed opacity-90">
-              The "clean canvas" for your workforce. Eliminate scheduling conflicts 
-              and payroll errors with a single source of truth. Designed to enhance operational efficiency.
+            <p className="text-xl md:text-2xl text-slate-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+              The operating system for modern workforce management. Eliminate scheduling conflicts and payroll errors with a single source of truth.
             </p>
             
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button className="bg-white text-purple-800 px-10 py-5 rounded-full text-lg font-bold hover:bg-purple-50 hover:-translate-y-1 active:scale-95 transition-all duration-300 shadow-xl shadow-purple-900/20 cursor-pointer flex items-center justify-center">
-                             Start Free Trial
-                </button>
-                <button className="bg-transparent border border-white/30 text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-white/10 hover:-translate-y-1 active:scale-95 transition-all duration-300 cursor-pointer flex items-center justify-center gap-2">
-                    <Play size={20} fill="currentColor" className="opacity-80"/> Watch Demo
+            <div className="flex flex-col sm:flex-row justify-center gap-6">
+                <Link to="/pricing">
+                  <button className="group relative px-10 py-5 bg-white text-slate-950 rounded-full text-lg font-bold hover:bg-purple-50 transition-all shadow-[0_0_40px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_rgba(255,255,255,0.5)] hover:-translate-y-1 active:scale-95 cursor-pointer w-full sm:w-auto">
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        Start Free Trial <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
+                      </span>
+                  </button>
+                </Link>
+                <button className="px-10 py-5 rounded-full text-lg font-bold text-white border border-white/10 bg-white/5 hover:bg-white/10 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 backdrop-blur-md group cursor-pointer w-full sm:w-auto">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-purple-500 transition-colors shrink-0">
+                      <Play size={14} fill="currentColor" className="ml-0.5"/>
+                    </div>
+                    Watch Demo
                 </button>
             </div>
         </section>
-
-        {/* --- CURVED SEPARATOR (SVG) --- */}
-            <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
-                 <svg className="relative block w-full h-[50px] md:h-[100px]" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                  <path d="M0,0V120H1200V0C1023.2,54.39,783.33,90,600,90S176.8,54.39,0,0Z" fill="#ffffff"></path>
-                  </svg>
-          </div>
       </div>
 
-      {/* --- FLOATING DASHBOARD IMAGE SECTION --- */}
-      <div className="relative z-20 -mt-24 md:-mt-48 px-4 mb-24">
-         <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl shadow-purple-900/20 border-8 border-white/50 backdrop-blur-xl overflow-hidden transform hover:scale-[1.01] transition-transform duration-500">
-            {/* Fake Dashboard Header */}
-            <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      {/* --- FLOATING DASHBOARD --- */}
+      <div className="relative z-20 -mt-32 md:-mt-48 px-4 mb-32 group perspective-1000">
+         <div className="max-w-6xl mx-auto bg-slate-900 rounded-3xl shadow-2xl shadow-purple-900/50 border border-white/10 overflow-hidden transform group-hover:rotate-x-2 transition-transform duration-700 ease-out relative">
+            
+            {/* Reflection Glare */}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-20"></div>
+
+            {/* Browser Header */}
+            <div className="bg-slate-950/50 border-b border-white/5 px-6 py-4 flex items-center justify-between backdrop-blur-md">
                 <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
                 </div>
-                <div className="h-2 w-32 bg-slate-200 rounded-full"></div>
-                <div className="flex gap-3">
-                     <div className="h-8 w-8 rounded-full bg-slate-200"></div>
+                <div className="h-6 w-64 bg-white/5 rounded-full border border-white/5 mx-auto flex items-center justify-center text-[10px] font-mono text-slate-500">
+                  app.crewcontrol.io/dashboard
                 </div>
             </div>
-            {/* Fake Dashboard Content (Preview) */}
-            <div className="p-8 bg-white grid grid-cols-1 md:grid-cols-4 gap-6">
-                {/* Sidebar */}
-                <div className="hidden md:block col-span-1 space-y-4">
-                    <div className="h-8 w-full bg-purple-50 rounded-lg"></div>
-                    <div className="h-8 w-3/4 bg-slate-50 rounded-lg"></div>
-                    <div className="h-8 w-4/5 bg-slate-50 rounded-lg"></div>
-                    <div className="mt-8 h-32 w-full bg-slate-50 rounded-xl"></div>
-                </div>
-                {/* Main Area */}
-                <div className="col-span-1 md:col-span-3 grid grid-cols-2 gap-6">
-                    <div className="col-span-2 md:col-span-1 h-32 bg-gradient-to-r from-purple-50 to-white border border-purple-100 rounded-2xl p-4">
-                        <div className="h-4 w-12 bg-purple-200 rounded mb-2"></div>
-                        <div className="h-8 w-24 bg-purple-600 rounded"></div>
-                    </div>
-                    <div className="col-span-2 md:col-span-1 h-32 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-                         <div className="h-4 w-12 bg-slate-200 rounded mb-2"></div>
-                         <div className="h-8 w-24 bg-slate-800 rounded"></div>
-                    </div>
-                    <div className="col-span-2 h-64 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center text-slate-300">
-                        [ Interactive Schedule Grid ]
-                    </div>
-                </div>
+
+            {/* Dashboard UI Mockup */}
+            <div className="p-8 bg-[#0B0F19] grid grid-cols-1 md:grid-cols-4 gap-8 min-h-[500px] relative">
+               {/* Sidebar Mock */}
+               <div className="hidden md:flex flex-col gap-4 border-r border-white/5 pr-6">
+                  <div className="h-10 w-full bg-purple-500/20 rounded-lg border border-purple-500/30"></div>
+                  <div className="h-10 w-3/4 bg-white/5 rounded-lg"></div>
+                  <div className="h-10 w-4/5 bg-white/5 rounded-lg"></div>
+                  <div className="mt-auto h-32 w-full bg-gradient-to-b from-white/5 to-transparent rounded-xl border border-white/5"></div>
+               </div>
+
+               {/* Main Content */}
+               <div className="col-span-1 md:col-span-3 grid grid-cols-2 gap-6">
+                  {/* Stat Cards */}
+                  <div className="col-span-1 h-32 bg-slate-900 rounded-2xl border border-white/5 p-5 relative overflow-hidden">
+                     <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full blur-xl"></div>
+                     <div className="h-8 w-8 bg-purple-500/20 rounded-lg mb-4"></div>
+                     <div className="h-4 w-20 bg-white/10 rounded mb-2"></div>
+                     <div className="h-8 w-32 bg-white/20 rounded"></div>
+                  </div>
+                  <div className="col-span-1 h-32 bg-slate-900 rounded-2xl border border-white/5 p-5 relative overflow-hidden">
+                     <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
+                     <div className="h-8 w-8 bg-emerald-500/20 rounded-lg mb-4"></div>
+                     <div className="h-4 w-20 bg-white/10 rounded mb-2"></div>
+                     <div className="h-8 w-32 bg-white/20 rounded"></div>
+                  </div>
+
+                  {/* Big Chart Area */}
+                  <div className="col-span-2 h-72 bg-slate-900 rounded-2xl border border-white/5 p-6 relative flex items-center justify-center">
+                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
+                     <div className="text-slate-600 font-mono text-sm tracking-widest">[ INTERACTIVE SCHEDULE GRID ]</div>
+                     
+                     {/* Decorative Lines */}
+                     <div className="absolute bottom-10 left-10 right-10 h-32 flex items-end justify-between gap-2 opacity-30">
+                        {[40, 70, 45, 90, 60, 80, 50, 70, 95, 60].map((h, i) => (
+                          <div key={i} style={{height: `${h}%`}} className="w-full bg-purple-500 rounded-t-sm"></div>
+                        ))}
+                     </div>
+                  </div>
+               </div>
             </div>
          </div>
       </div>
 
-      {/* --- TRUSTED BY --- */}
-      <div className="max-w-7xl mx-auto px-4 text-center mb-24">
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Trusted by 500+ Innovative Teams</p>
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-40 grayscale hover:grayscale-0 transition-all duration-500 cursor-default">
-            <div className="text-2xl font-black text-purple-900">LOGISTIC<span className="text-purple-500">CO</span></div>
-            <div className="text-2xl font-black text-purple-900">Coffee<span className="italic font-light">House</span></div>
-            <div className="text-2xl font-black text-purple-900">EVENT<span className="text-slate-400">MASTER</span></div>
-            <div className="text-2xl font-black text-purple-900">Shift<span className="text-purple-500">Sync</span></div>
+      {/* --- LOGO STRIP --- */}
+      <div className="max-w-7xl mx-auto px-4 text-center mb-32">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em] mb-10">Powering the world's best teams</p>
+        <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-30 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700 cursor-default">
+            {/* Logos using text for demo */}
+            <h3 className="text-2xl font-black text-white flex items-center gap-2"><Globe size={24}/> ATLAS</h3>
+            <h3 className="text-2xl font-black text-white flex items-center gap-2"><Zap size={24}/> BOLT</h3>
+            <h3 className="text-2xl font-black text-white flex items-center gap-2"><ShieldCheck size={24}/> SECURE</h3>
+            <h3 className="text-2xl font-black text-white flex items-center gap-2"><Star size={24}/> NORTH</h3>
         </div>
       </div>
 
       <main className="flex-grow">
         
-        {/* --- FEATURES (3-in-1 Vision) --- */}
-        <section id="features" className="py-24 bg-white relative">
-          <div className="max-w-6xl mx-auto px-6 space-y-32">
-            
-            {/* For Managers */}
-            <div className="flex flex-col md:flex-row items-center gap-16">
-              <div className="flex-1">
-                <div className="inline-block p-3 bg-purple-100 rounded-2xl mb-6">
-                    <Briefcase className="text-purple-600" size={32} />
-                </div>
-                <h2 className="text-4xl font-extrabold text-slate-900 mb-6">For Managers: <br/><span className="text-purple-600">Visual Control.</span></h2>
-                <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                  Drag and drop shifts in a beautiful calendar. Check availability instantly and 
-                  publish schedules to the whole team with a single click.
-                </p>
-                <ul className="space-y-4 font-medium text-slate-700">
-                  <li className="flex items-center gap-3"><div className="bg-green-100 p-1 rounded-full"><Check size={16} className="text-green-600"/></div> Smart conflict detection</li>
-                  <li className="flex items-center gap-3"><div className="bg-green-100 p-1 rounded-full"><Check size={16} className="text-green-600"/></div> One-click shift publishing</li>
-                </ul>
-              </div>
-              <div className="flex-1 w-full h-80 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-[40px] border border-white shadow-2xl shadow-purple-100 flex items-center justify-center relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-white/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition duration-500 flex items-center justify-center">
-                     <button className="bg-white px-6 py-2 rounded-full shadow-lg text-sm font-bold text-purple-700">View Dashboard</button>
-                  </div>
-                  <span className="text-purple-200 font-bold text-2xl group-hover:scale-110 transition duration-500">Manager View</span>
-              </div>
-            </div>
-
-            {/* For Workers */}
-            <div className="flex flex-col md:flex-row-reverse items-center gap-16">
-              <div className="flex-1 text-right md:text-left">
-                 <div className="inline-block p-3 bg-pink-100 rounded-2xl mb-6">
-                    <Smartphone className="text-pink-600" size={32} />
-                </div>
-                <h2 className="text-4xl font-extrabold text-slate-900 mb-6">For Workers: <br/><span className="text-pink-500">Total Clarity.</span></h2>
-                <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                  No more "when am I working?" calls. Employees can check their schedule 
-                  on their phones, request swaps, and log their hours effortlessly.
-                </p>
-                <ul className="space-y-4 font-medium text-slate-700 flex flex-col items-end md:items-start">
-                  <li className="flex items-center gap-3"><div className="bg-pink-100 p-1 rounded-full"><Check size={16} className="text-pink-600"/></div> Mobile-first personal schedule</li>
-                  <li className="flex items-center gap-3"><div className="bg-pink-100 p-1 rounded-full"><Check size={16} className="text-pink-600"/></div> Easy time-off requests</li>
-                </ul>
-              </div>
-              <div className="flex-1 w-full h-80 bg-gradient-to-br from-pink-50 to-rose-50 rounded-[40px] border border-white shadow-2xl shadow-pink-100 flex items-center justify-center text-pink-200 font-bold text-2xl">
-                  Mobile App
-              </div>
-            </div>
-
-            {/* For HR */}
-            <div className="flex flex-col md:flex-row items-center gap-16">
-              <div className="flex-1">
-                <div className="inline-block p-3 bg-indigo-100 rounded-2xl mb-6">
-                    <ShieldCheck className="text-indigo-600" size={32} />
-                </div>
-                <h2 className="text-4xl font-extrabold text-slate-900 mb-6">For HR: <br/><span className="text-indigo-600">Payroll Perfection.</span></h2>
-                <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                  Automate the month-end headache. HR teams can track total hours, monitor 
-                  overtime, and export audit-ready reports for payroll in seconds.
-                </p>
-                <ul className="space-y-4 font-medium text-slate-700">
-                  <li className="flex items-center gap-3"><div className="bg-indigo-100 p-1 rounded-full"><Check size={16} className="text-indigo-600"/></div> Monthly analytics</li>
-                  <li className="flex items-center gap-3"><div className="bg-indigo-100 p-1 rounded-full"><Check size={16} className="text-indigo-600"/></div> Audit-ready payroll exports</li>
-                </ul>
-              </div>
-              <div className="flex-1 w-full h-80 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[40px] border border-white shadow-2xl shadow-indigo-100 flex items-center justify-center text-indigo-200 font-bold text-2xl">
-                  HR Analytics
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        {/* --- PRICING SECTION --- */}
-        <section id="pricing" className="py-32 bg-slate-50 relative overflow-hidden">
-          {/* Decor */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-200/50 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-          
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* --- BENTO GRID FEATURES --- */}
+        <section id="features" className="py-24 relative">
+          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-20">
-              <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900">Choose the perfect plan</h2>
-              <p className="mt-4 text-xl text-slate-500">Simple pricing that scales with your team size.</p>
+               <h2 className="text-4xl md:text-5xl font-black mb-6">Everything you need to <span className="text-purple-400">run operations.</span></h2>
+               <p className="text-slate-400 max-w-2xl mx-auto text-lg">A complete suite of tools designed to replace your spreadsheets, WhatsApp groups, and paper timesheets.</p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8 items-center">
-              
-              {/* 1. Basic Plan */}
-              <div className="bg-white p-8 rounded-3xl shadow-lg shadow-slate-200 border border-slate-100 hover:scale-105 hover:border-purple-300 transition-all duration-300 cursor-pointer">
-                <h3 className="text-lg font-bold text-slate-900">Basic</h3>
-                <p className="text-slate-500 text-sm mt-1">For micro-teams & startups</p>
-                <div className="my-6">
-                  <span className="text-4xl font-extrabold text-slate-900">$19</span>
-                  <span className="text-slate-500 text-sm">/mo</span>
-                </div>
-                <div className="space-y-4 mb-8 text-sm">
-                  {["Up to 5 employees", "Mobile app access", "Visual drag & drop schedule builder", "Public holiday & time-off requests", "Email support"].map(feat => (
-                    <div key={feat} className="flex items-center text-slate-600"><Check className="text-purple-500 mr-3 shrink-0" size={18}/> {feat}</div>
-                  ))}
-                </div>
-                <button className="w-full py-3 border-2 border-slate-100 text-slate-900 font-bold rounded-xl hover:border-purple-600 hover:text-purple-600 transition-colors cursor-pointer">
-                  Get Started
-                </button>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-2 gap-6 h-auto md:h-[800px]">
+               
+               {/* 1. Manager Card (Large Left) */}
+               <div className="col-span-1 md:col-span-2 row-span-2 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden group hover:border-purple-500/30 hover:-translate-y-1 transition-all duration-500 cursor-pointer">
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-purple-600/20 transition-colors"></div>
+                  
+                  <div className="relative z-10">
+                     <div className="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-8 border border-purple-500/30 group-hover:scale-110 transition-transform duration-500">
+                        <Briefcase className="text-purple-400" size={28} />
+                     </div>
+                     <h3 className="text-3xl font-bold mb-4">Smart Scheduling</h3>
+                     <p className="text-slate-400 text-lg mb-8 max-w-md">Drag and drop shifts in a beautiful calendar. Check availability instantly and publish schedules to the whole team with a single click.</p>
+                     
+                     <div className="flex gap-3 mb-10">
+                        <div className="px-4 py-2 bg-white/5 rounded-full text-sm font-medium border border-white/5">AI Conflict Detection</div>
+                        <div className="px-4 py-2 bg-white/5 rounded-full text-sm font-medium border border-white/5">Auto-Publish</div>
+                     </div>
+                  </div>
 
-              {/* 2. Pro Plan - HIGHLIGHTED */}
-              <div className="bg-gradient-to-b from-purple-700 to-indigo-800 p-10 rounded-3xl shadow-2xl shadow-purple-900/40 transform scale-105 hover:scale-110 transition-all duration-500 relative text-white z-10 cursor-pointer group">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
-                  Popular
-                </div>
-                <h3 className="text-xl font-bold">Business Pro</h3>
-                <p className="text-purple-200 text-sm mt-1">Everything you need to scale</p>
-                <div className="my-6">
-                  <span className="text-5xl font-extrabold">$49</span>
-                  <span className="text-purple-200 text-sm">/mo</span>
-                </div>
-                <div className="space-y-4 mb-8 text-sm text-purple-100">
-                  {["Up to 25 employees", "AI Auto-Scheduling", "SMS Notifications", "Payroll Integration", "Priority support"].map(feat => (
-                    <div key={feat} className="flex items-center"><Check className="text-purple-300 mr-3" size={18}/> {feat}</div>
-                  ))}
-                </div>
-                <button className="w-full py-4 bg-white text-purple-800 font-bold rounded-xl hover:bg-purple-50 active:scale-95 transition-all shadow-lg cursor-pointer">
-                  Try Pro Free
-                </button>
-              </div>
+                  {/* Visual Mockup inside card */}
+                  <div className="absolute bottom-0 right-0 w-3/4 h-1/2 bg-[#0B0F19] rounded-tl-3xl border-t border-l border-white/10 p-6 shadow-2xl translate-y-10 group-hover:translate-y-6 transition-transform duration-500">
+                      <div className="flex gap-4 mb-4">
+                         <div className="w-1/3 h-24 bg-purple-500/10 rounded-xl border border-purple-500/20"></div>
+                         <div className="w-1/3 h-24 bg-white/5 rounded-xl border border-white/5"></div>
+                         <div className="w-1/3 h-24 bg-white/5 rounded-xl border border-white/5"></div>
+                      </div>
+                      <div className="w-full h-8 bg-purple-600 rounded-lg flex items-center justify-center text-xs font-bold text-white">Publish Schedule</div>
+                  </div>
+               </div>
 
-              {/* 3. Enterprise Plan */}
-              <div className="bg-white p-8 rounded-3xl shadow-lg shadow-slate-200 border border-slate-100 hover:scale-105 hover:border-purple-300 transition-all duration-300 cursor-pointer">
-                <h3 className="text-lg font-bold text-slate-900">Enterprise</h3>
-                <p className="text-slate-500 text-sm mt-1">For multi-location operations</p>
-                <div className="my-6 text-slate-900 font-extrabold text-4xl">
-                  Custom
-                </div>
-                <div className="space-y-4 mb-8 text-sm">
-                  {["Unlimited employees", "Custom API Access", "Custom approval workflows", "SLA-based support", "Dedicated account manager"].map(feat => (
-                      <div key={feat} className="flex items-center text-slate-600"><Check className="text-purple-500 mr-3 shrink-0" size={18}/> {feat}</div>
-                  ))}
-                </div>
-                <button className="w-full py-3 border-2 border-slate-100 text-slate-900 font-bold rounded-xl hover:border-purple-600 hover:text-purple-600 transition-colors cursor-pointer">
-                  Contact Sales
-                </button>
-              </div>
+               {/* 2. Mobile App Card (Top Right) */}
+               <div className="col-span-1 row-span-1 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-pink-500/30 hover:-translate-y-1 transition-all duration-500 cursor-pointer">
+                   <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-pink-500/10 to-transparent"></div>
+                   <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-6 border border-pink-500/30 group-hover:scale-110 transition-transform duration-500">
+                      <Smartphone className="text-pink-400" size={24} />
+                   </div>
+                   <h3 className="text-2xl font-bold mb-2">Mobile First</h3>
+                   <p className="text-slate-400 text-sm">Employees check shifts, swap times, and clock in from their pockets.</p>
+               </div>
+
+               {/* 3. Payroll Card (Bottom Right) */}
+               <div className="col-span-1 row-span-1 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-emerald-500/30 hover:-translate-y-1 transition-all duration-500 cursor-pointer">
+                   <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-emerald-500/10 to-transparent"></div>
+                   <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 border border-emerald-500/30 group-hover:scale-110 transition-transform duration-500">
+                      <BarChart3 className="text-emerald-400" size={24} />
+                   </div>
+                   <h3 className="text-2xl font-bold mb-2">Payroll Ready</h3>
+                   <p className="text-slate-400 text-sm">Export timesheets directly to Quickbooks, ADP, or Xero in seconds.</p>
+               </div>
 
             </div>
           </div>
         </section>
 
-   {/* --- LAST CALL TO ACTION --- */}
-<section className="bg-gradient-to-r from-purple-700 to-indigo-800 py-24 relative overflow-hidden">
-    
-    {/* --- TOP CURVE ---*/}
-    <div className="absolute top-0 left-0 w-full overflow-hidden leading-none rotate-180">
-        <svg className="relative block w-full h-[40px] md:h-[80px]" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        {/* --- 3-CARD PRICING TEASER --- */}
+        <section id="pricing" className="py-32 relative">
+           {/* Slanted Background */}
+           <div className="absolute inset-0 bg-white/[0.02] -skew-y-3 transform origin-bottom-right pointer-events-none"></div>
+           
+           <div className="max-w-7xl mx-auto px-6 relative z-10">
+              <div className="text-center mb-16">
+                 <h2 className="text-4xl font-black mb-4">Start small, <span className="text-purple-400">scale infinitely.</span></h2>
+                 <p className="text-slate-400">Simple pricing for teams of all sizes.</p>
+              </div>
 
-            <path d="M0,0V120H1200V0C1023.2,54.39,783.33,90,600,90S176.8,54.39,0,0Z" fill="#ffffff"></path>
-        </svg>
-    </div>
+              <div className="grid md:grid-cols-3 gap-8 items-center">
+                  
+                  {/* 1. Starter */}
+                  <div className="group relative p-8 rounded-3xl bg-white/5 border border-white/10 transition-all duration-500 hover:scale-105 hover:bg-slate-900/90 hover:border-purple-500/30 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)] cursor-pointer">
+                      <h3 className="text-lg font-bold text-slate-300 group-hover:text-white transition-colors">Starter</h3>
+                      <div className="my-4">
+                         <span className="text-4xl font-black text-white">$19<span className="text-2xl">.99</span></span>
+                         <span className="text-sm text-slate-500">/mo</span>
+                      </div>
+                      <p className="text-slate-400 text-sm mb-6">Perfect for small crews getting started.</p>
+                      <ul className="space-y-3 mb-8 text-sm text-slate-300 group-hover:text-slate-200">
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Up to 10 employees</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Drag-and-drop scheduling</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Mobile pulse app</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Shift swap requests</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> AI conflict detection</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Real-time "Who's In" dashboard</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> One-click shift publishing</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Availability calendar</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Time-off requests</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Multiple locations</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Email support</li>
+                      </ul>
+                      <Link to="/pricing">
+                        <button className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white text-white hover:text-slate-900 transition-all cursor-pointer">Get Started</button>
+                      </Link>
+                  </div>
 
+                  {/* 2. Professional (Featured - Interactive) */}
+                  <div className="group relative p-10 rounded-3xl bg-slate-900/90 border border-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.2)] transform scale-105 transition-all duration-500 hover:scale-110 hover:shadow-[0_0_80px_rgba(168,85,247,0.4)] hover:border-purple-400 cursor-pointer z-10">
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                         Most Popular
+                      </div>
+                      <h3 className="text-xl font-bold text-white group-hover:text-purple-200 transition-colors">Professional</h3>
+                      <div className="my-4">
+                         <span className="text-5xl font-black text-white">$49<span className="text-3xl">.99</span></span>
+                         <span className="text-sm text-slate-400">/mo</span>
+                      </div>
+                      <p className="text-purple-200 text-sm mb-6">Everything you need to scale operations.</p>
+                      <ul className="space-y-3 mb-8 text-sm text-white">
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Up to 50 employees</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Automated shift filling</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> In-app messaging</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Payroll exports (QuickBooks, Xero, ADP)</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Absence & leave management</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Workforce analytics</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> HR role access</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Priority support</li>
+                      </ul>
+                      <Link to="/pricing">
+                        <button className="w-full py-4 rounded-xl bg-white text-slate-900 font-bold hover:bg-purple-50 transition-all shadow-lg group-hover:shadow-purple-500/20 cursor-pointer">Try Free 14 Days</button>
+                      </Link>
+                  </div>
 
-    <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
-    <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
+                  {/* 3. Enterprise */}
+                  <div className="group relative p-8 rounded-3xl bg-white/5 border border-white/10 transition-all duration-500 hover:scale-105 hover:bg-slate-900/90 hover:border-purple-500/30 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)] cursor-pointer">
+                      <h3 className="text-lg font-bold text-slate-300 group-hover:text-white transition-colors">Enterprise</h3>
+                      <div className="my-4">
+                         <span className="text-4xl font-black text-white">Custom</span>
+                      </div>
+                      <p className="text-slate-400 text-sm mb-6">For multi-location organizations.</p>
+                      <ul className="space-y-3 mb-8 text-sm text-slate-300 group-hover:text-slate-200">
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Unlimited employees</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Everything in Professional</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Digital document vault</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Compliance audit trail</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Advanced workforce analytics</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> REST API access</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Custom integrations</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Dedicated account manager</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> 99.9% uptime SLA</li>
+                      </ul>
+                      <Link to="/contact">
+                        <button className="w-full py-3 rounded-xl border border-white/10 font-bold hover:bg-white text-white hover:text-slate-900 transition-all cursor-pointer">Contact Sales</button>
+                      </Link>
+                  </div>
 
-    <div className="max-w-4xl mx-auto px-4 text-center relative z-10 mt-8">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-6">Ready to regain control?</h2>
-        <p className="text-xl text-purple-100 mb-10 max-w-2xl mx-auto">
-            Join 500+ operations teams who switched to CrewControl. 
-            Start your 14-day free trial today.
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button className="bg-white text-purple-800 px-10 py-5 rounded-full text-lg font-bold hover:bg-white hover:-translate-y-1 hover:shadow-xl hover:shadow-white/20 active:scale-95 transition-all duration-300 shadow-lg cursor-pointer">
-                Get Started Now
-            </button>
-            <button className="bg-transparent border border-purple-400 text-white px-10 py-5 rounded-full text-lg font-bold hover:bg-white/10 hover:-translate-y-1 active:scale-95 transition-all duration-300 cursor-pointer">
-                Talk to Sales
-            </button>
-        </div>
-    </div>
-</section>
+              </div>
+           </div>
+        </section>
+
+        {/* --- TESTIMONIALS SECTION --- */}
+        <section className="py-32 relative overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent pointer-events-none"></div>
+          
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-black mb-4">
+                Trusted by <span className="text-purple-400">operations leaders</span>
+              </h2>
+              <p className="text-slate-400 text-lg">See what teams like yours are saying</p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Testimonial 1 */}
+              <div className="group relative bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:border-purple-500/30 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)] transition-all duration-500 hover:-translate-y-2">
+                <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-30 transition-opacity">
+                  <Quote className="text-purple-400" size={48} />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex gap-1 mb-6">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="fill-yellow-400 text-yellow-400" size={20} />
+                    ))}
+                  </div>
+                  
+                  <p className="text-slate-300 text-lg leading-relaxed mb-6">
+                    "CrewControl cut our scheduling time from 8 hours to 15 minutes. No more Excel disasters or forgotten shifts. Our team actually looks forward to checking their schedules now."
+                  </p>
+                  
+                  <div className="flex items-center gap-4 pt-6 border-t border-white/5">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold text-lg">
+                      SM
+                    </div>
+                    <div>
+                      <div className="font-bold text-white">Sarah Mitchell</div>
+                      <div className="text-sm text-slate-400">Operations Manager, Brew & Bean Café</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonial 2 */}
+              <div className="group relative bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:border-pink-500/30 hover:shadow-[0_0_40px_rgba(236,72,153,0.1)] transition-all duration-500 hover:-translate-y-2">
+                <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-30 transition-opacity">
+                  <Quote className="text-pink-400" size={48} />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex gap-1 mb-6">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="fill-yellow-400 text-yellow-400" size={20} />
+                    ))}
+                  </div>
+                  
+                  <p className="text-slate-300 text-lg leading-relaxed mb-6">
+                    "We manage 3 construction sites with 45+ workers. The location-based scheduling is a game-changer. No more confusion about who's working where. Our no-show rate dropped by 60%."
+                  </p>
+                  
+                  <div className="flex items-center gap-4 pt-6 border-t border-white/5">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-white font-bold text-lg">
+                      JC
+                    </div>
+                    <div>
+                      <div className="font-bold text-white">James Chen</div>
+                      <div className="text-sm text-slate-400">Site Supervisor, Metro Construction</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonial 3 */}
+              <div className="group relative bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:border-emerald-500/30 hover:shadow-[0_0_40px_rgba(16,185,129,0.1)] transition-all duration-500 hover:-translate-y-2">
+                <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-30 transition-opacity">
+                  <Quote className="text-emerald-400" size={48} />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className="flex gap-1 mb-6">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="fill-yellow-400 text-yellow-400" size={20} />
+                    ))}
+                  </div>
+                  
+                  <p className="text-slate-300 text-lg leading-relaxed mb-6">
+                    "The mobile app makes everything so easy. Employees can swap shifts themselves, request time off, and get notifications. I barely get scheduling questions anymore. It's like having a 24/7 assistant."
+                  </p>
+                  
+                  <div className="flex items-center gap-4 pt-6 border-t border-white/5">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-lg">
+                      MR
+                    </div>
+                    <div>
+                      <div className="font-bold text-white">Maria Rodriguez</div>
+                      <div className="text-sm text-slate-400">Restaurant Manager, The Garden Bistro</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* --- HOW IT WORKS SECTION --- */}
+        <section className="py-32 relative">
+          {/* Diagonal Background Pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(168,85,247,0.03)_0%,transparent_50%)] pointer-events-none"></div>
+          
+          <div className="max-w-6xl mx-auto px-6 relative z-10">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl md:text-5xl font-black mb-4">
+                Get started in <span className="text-purple-400">3 simple steps</span>
+              </h2>
+              <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                From signup to your first schedule, we've made it effortless
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              {/* Step 1 */}
+              <div className="relative group">
+                {/* Connecting Line (Hidden on mobile) */}
+                <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-purple-500/50 to-transparent z-0 translate-x-8"></div>
+                
+                <div className="relative bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:border-purple-500/30 hover:shadow-[0_0_40px_rgba(168,85,247,0.15)] transition-all duration-500 hover:-translate-y-2">
+                  {/* Step Number Badge */}
+                  <div className="absolute -top-4 left-8 w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg z-10">
+                    1
+                  </div>
+                  
+                  {/* Icon */}
+                  <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 mt-4 border border-purple-500/30 group-hover:scale-110 transition-transform duration-500">
+                    <UserCheck className="text-purple-400" size={32} />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold mb-4 text-white">Sign Up & Set Up</h3>
+                  <p className="text-slate-400 leading-relaxed">
+                    Create your account and tell us about your business. Choose remote, on-site, or hybrid work. Add your locations if needed.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative group">
+                {/* Connecting Line */}
+                <div className="hidden md:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-purple-500/50 to-transparent z-0 translate-x-8"></div>
+                
+                <div className="relative bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:border-pink-500/30 hover:shadow-[0_0_40px_rgba(236,72,153,0.15)] transition-all duration-500 hover:-translate-y-2">
+                  {/* Step Number Badge */}
+                  <div className="absolute -top-4 left-8 w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg z-10">
+                    2
+                  </div>
+                  
+                  {/* Icon */}
+                  <div className="w-16 h-16 bg-pink-500/20 rounded-2xl flex items-center justify-center mb-6 mt-4 border border-pink-500/30 group-hover:scale-110 transition-transform duration-500">
+                    <Users className="text-pink-400" size={32} />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold mb-4 text-white">Invite Your Team</h3>
+                  <p className="text-slate-400 leading-relaxed">
+                    Send email invitations to your employees. They'll receive a link to join and can set up their profiles in minutes.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 3 */}
+              <div className="relative group">
+                <div className="relative bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 hover:border-emerald-500/30 hover:shadow-[0_0_40px_rgba(16,185,129,0.15)] transition-all duration-500 hover:-translate-y-2">
+                  {/* Step Number Badge */}
+                  <div className="absolute -top-4 left-8 w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-black text-xl shadow-lg z-10">
+                    3
+                  </div>
+                  
+                  {/* Icon */}
+                  <div className="w-16 h-16 bg-emerald-500/20 rounded-2xl flex items-center justify-center mb-6 mt-4 border border-emerald-500/30 group-hover:scale-110 transition-transform duration-500">
+                    <Calendar className="text-emerald-400" size={32} />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold mb-4 text-white">Start Scheduling</h3>
+                  <p className="text-slate-400 leading-relaxed">
+                    Create your first schedule with drag-and-drop. Auto-detect conflicts, publish instantly, and let your team sync to mobile.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="text-center mt-12">
+              <Link to="/pricing">
+                <button className="px-8 py-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full font-bold hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:-translate-y-1 active:scale-95 cursor-pointer">
+                  Get Started Free →
+                </button>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* --- TRUST INDICATORS SECTION --- */}
+        <section className="py-24 relative overflow-hidden">
+          {/* Subtle Background Glow */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/10 via-indigo-900/10 to-purple-900/10 pointer-events-none"></div>
+          
+          <div className="max-w-6xl mx-auto px-6 relative z-10">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black mb-4">
+                Built for <span className="text-purple-400">enterprise security</span>
+              </h2>
+              <p className="text-slate-400 text-lg">Your data is protected with industry-leading standards</p>
+            </div>
+
+            {/* Trust Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+              <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300">
+                <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/30">
+                  <CheckCircle2 className="text-green-400" size={24} />
+                </div>
+                <div className="text-3xl font-black text-white mb-2">99.9%</div>
+                <div className="text-sm text-slate-400">Uptime SLA</div>
+              </div>
+
+              <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
+                  <Lock className="text-blue-400" size={24} />
+                </div>
+                <div className="text-3xl font-black text-white mb-2">SOC 2</div>
+                <div className="text-sm text-slate-400">Certified</div>
+              </div>
+
+              <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/30">
+                  <ShieldCheck className="text-purple-400" size={24} />
+                </div>
+                <div className="text-3xl font-black text-white mb-2">GDPR</div>
+                <div className="text-sm text-slate-400">Compliant</div>
+              </div>
+
+              <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300">
+                <div className="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-500/30">
+                  <Award className="text-orange-400" size={24} />
+                </div>
+                <div className="text-3xl font-black text-white mb-2">ISO 27001</div>
+                <div className="text-sm text-slate-400">Ready</div>
+              </div>
+            </div>
+
+            {/* Additional Trust Points */}
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="flex items-start gap-4 p-6 bg-slate-900/30 rounded-2xl border border-white/5">
+                <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-purple-500/30">
+                  <TrendingUp className="text-purple-400" size={20} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white mb-1">500+ Teams</h4>
+                  <p className="text-sm text-slate-400">Trust CrewControl for their operations</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-6 bg-slate-900/30 rounded-2xl border border-white/5">
+                <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-blue-500/30">
+                  <Globe className="text-blue-400" size={20} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white mb-1">15+ Countries</h4>
+                  <p className="text-sm text-slate-400">Serving teams worldwide</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 p-6 bg-slate-900/30 rounded-2xl border border-white/5">
+                <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0 border border-emerald-500/30">
+                  <Clock className="text-emerald-400" size={20} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white mb-1">24/7 Support</h4>
+                  <p className="text-sm text-slate-400">Always here when you need us</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* --- FAQ SECTION --- */}
-        <section id="faq" className="py-24 bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center text-slate-900 mb-12">Frequently Asked Questions</h2>
+        <section id="faq" className="py-24 relative">
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="text-3xl font-bold text-center mb-16">Common Questions</h2>
             
             <div className="space-y-4">
               {faqData.map((item, index) => (
-                <div key={index} className={`bg-white border rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer ${openFaqIndex === index ? 'border-purple-500 shadow-lg ring-1 ring-purple-100' : 'border-slate-200 hover:border-purple-200'}`}>
+                <div key={index} className={`bg-white/5 border rounded-2xl overflow-hidden transition-all duration-300 ${
+                  openFaqIndex === index ? 'border-purple-500 bg-white/10 shadow-[0_0_30px_rgba(168,85,247,0.1)]' : 'border-white/5 hover:border-white/20'
+                }`}>
                   <button 
                     onClick={() => toggleFaq(index)}
                     className="w-full flex justify-between items-center p-6 text-left focus:outline-none cursor-pointer"
                   >
-                    <span className={`font-bold text-lg transition ${openFaqIndex === index ? 'text-purple-700' : 'text-slate-800'}`}>{item.question}</span>
+                    <span className={`font-bold text-lg transition ${openFaqIndex === index ? 'text-purple-300' : 'text-slate-200'}`}>{item.question}</span>
                     {openFaqIndex === index ? (
-                      <div className="bg-purple-100 p-1 rounded-full"><ChevronUp className="text-purple-600" size={20} /></div>
+                      <div className="bg-purple-500/20 p-1 rounded-full"><ChevronUp className="text-purple-400" size={20} /></div>
                     ) : (
-                      <div className="bg-slate-100 p-1 rounded-full"><ChevronDown className="text-slate-400" size={20} /></div>
+                      <div className="bg-white/5 p-1 rounded-full"><ChevronDown className="text-slate-400" size={20} /></div>
                     )}
                   </button>
                   
@@ -379,7 +624,7 @@ const App = () => {
                       openFaqIndex === index ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <div className="px-6 pb-6 text-slate-600 text-base leading-relaxed border-t border-slate-50 pt-4">
+                    <div className="px-6 pb-6 text-slate-400 text-base leading-relaxed border-t border-white/5 pt-4">
                       {item.answer}
                     </div>
                   </div>
@@ -388,47 +633,32 @@ const App = () => {
             </div>
           </div>
         </section>
-      </main>
 
-      {/* --- FOOTER --- */}
-      <footer className="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-xl">C</span>
-                </div>
-                <span className="text-2xl font-bold text-white">CrewControl</span>
-              </div>
-              <p className="max-w-xs text-base text-slate-400 leading-relaxed">
-                Enterprise-grade scheduling for modern operations. 
-                Built for control, speed, and reliability.
+        {/* --- FINAL CTA --- */}
+        <section className="py-32 text-center relative overflow-hidden">
+           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-purple-900/20 pointer-events-none"></div>
+           <div className="relative z-10 max-w-4xl mx-auto px-6">
+              <h2 className="text-5xl md:text-7xl font-black mb-8 tracking-tighter">
+                Ready to regain <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">control?</span>
+              </h2>
+              <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
+                Join 500+ operations teams who switched to CrewControl this month.
               </p>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Product</h4>
-              <ul className="space-y-4 text-sm">
-                <li><a href="http://localhost:5173/changelog" className="hover:text-purple-400 transition cursor-pointer">Changelog</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition cursor-pointer">Documentation</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition cursor-pointer">API Status</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-6 text-sm uppercase tracking-wider">Legal</h4>
-              <ul className="space-y-4 text-sm">
-                <li><a href="#" className="hover:text-purple-400 transition cursor-pointer">Privacy</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition cursor-pointer">Terms</a></li>
-                <li><a href="#" className="hover:text-purple-400 transition cursor-pointer">Security</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-slate-800 pt-8 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
-            <span>&copy; 2026 CrewControl Systems.</span>
-            <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div> All Systems Operational</span>
-          </div>
-        </div>
-      </footer>
+              <div className="flex flex-col sm:flex-row justify-center gap-6">
+                <Link to="/pricing">
+                  <button className="px-10 py-5 bg-white text-slate-950 rounded-full text-lg font-bold hover:bg-slate-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.2)] cursor-pointer">
+                    Get Started Now
+                  </button>
+                </Link>
+                <button className="px-10 py-5 rounded-full text-lg font-bold text-white border border-white/10 hover:bg-white/5 transition-all cursor-pointer">
+                  Contact Sales
+                </button>
+              </div>
+           </div>
+        </section>
+
+      </main>
     </div>
   );
 };

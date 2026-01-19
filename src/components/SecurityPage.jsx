@@ -1,10 +1,10 @@
 import React from 'react';
 import { jsPDF } from "jspdf";
-import { ShieldCheck, Lock, Server, Eye, FileCheck, Smartphone, Check, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, Server, Eye, FileCheck, Smartphone, Check, ArrowRight, Shield } from 'lucide-react';
 
 const SecurityPage = () => {
   
-  // --- WHITEPAPER CONTENT  ---
+  // --- WHITEPAPER CONTENT (Unchanged Data) ---
   const whitepaperData = [
     {
       title: "1. Executive Summary",
@@ -48,8 +48,8 @@ const SecurityPage = () => {
     let yPos = 0;
 
     // --- COVER PAGE ---
-    // Background Block
-    doc.setFillColor(15, 23, 42); // Slate-900 color
+    // Dark Background Block
+    doc.setFillColor(2, 6, 23); // Slate-950 color
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
     // Title
@@ -62,7 +62,7 @@ const SecurityPage = () => {
     // Subtitle
     doc.setFontSize(14);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(16, 185, 129); // Emerald-500
+    doc.setTextColor(52, 211, 153); // Emerald-400
     doc.text("Defense-in-Depth Strategy & Compliance", 20, 130);
 
     // Meta Info
@@ -74,10 +74,9 @@ const SecurityPage = () => {
     // --- CONTENT PAGES ---
     doc.addPage();
     yPos = 20;
-    doc.setTextColor(0, 0, 0); // Black text for content
+    doc.setTextColor(0, 0, 0); // Keep content text black for readability in PDF
 
     whitepaperData.forEach((section, index) => {
-      // Check for page break
       if (yPos > pageHeight - 60) {
         doc.addPage();
         yPos = 20;
@@ -86,7 +85,7 @@ const SecurityPage = () => {
       // Section Title
       doc.setFontSize(16);
       doc.setFont("helvetica", "bold");
-      doc.setTextColor(15, 23, 42); // Slate-900
+      doc.setTextColor(2, 6, 23); // Slate-950
       doc.text(section.title, 20, yPos);
       yPos += 10;
 
@@ -95,14 +94,13 @@ const SecurityPage = () => {
       doc.setFont("helvetica", "normal");
       doc.setTextColor(51, 65, 85); // Slate-700
       
-      const splitText = doc.splitTextToSize(section.body, 170); // Wrap text
+      const splitText = doc.splitTextToSize(section.body, 170);
       doc.text(splitText, 20, yPos);
       
-      // Add spacing based on text length
       yPos += (splitText.length * 5) + 15;
     });
 
-    // Add Footer to last page
+    // Footer
     doc.setFontSize(9);
     doc.setTextColor(150);
     doc.text("CrewControl Security Whitepaper - Page " + doc.internal.getNumberOfPages(), pageWidth / 2, pageHeight - 10, { align: "center" });
@@ -114,104 +112,104 @@ const SecurityPage = () => {
   const securityFeatures = [
     {
       title: "Bank-Grade Encryption",
-      icon: <Lock size={26} className="text-emerald-500" />,
+      icon: <Lock size={26} className="text-emerald-400" />,
       desc: "Data at rest is encrypted using AES-256. Data in transit is protected via TLS 1.3. Your information is unreadable to anyone without the key."
     },
     {
       title: "Secure Infrastructure",
-      icon: <Server size={26} className="text-blue-500" />,
+      icon: <Server size={26} className="text-blue-400" />,
       desc: "Hosted on AWS (Amazon Web Services) in data centers that are ISO 27001, SOC 1 and SOC 2 compliant, ensuring physical and digital security."
     },
     {
       title: "Continuous Monitoring",
-      icon: <Eye size={26} className="text-purple-500" />,
+      icon: <Eye size={26} className="text-purple-400" />,
       desc: "Our automated systems monitor for suspicious activity 24/7. We perform regular penetration testing and vulnerability scans."
     },
     {
       title: "Access Control (RBAC)",
-      icon: <Smartphone size={26} className="text-orange-500" />,
+      icon: <Smartphone size={26} className="text-orange-400" />,
       desc: "Granular permission settings allow you to control exactly who sees what. Support for Two-Factor Authentication (2FA) and SSO."
     }
   ];
 
   const complianceBadges = [
-    { name: "GDPR Compliant", color: "bg-blue-100 text-blue-700 border-blue-200" },
-    { name: "SOC 2 Type II", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-    { name: "ISO 27001", color: "bg-purple-100 text-purple-700 border-purple-200" },
-    { name: "99.99% Uptime", color: "bg-slate-100 text-slate-700 border-slate-200" },
+    { name: "GDPR Compliant", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
+    { name: "SOC 2 Type II", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+    { name: "ISO 27001", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
+    { name: "99.99% Uptime", color: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#fcfaff] relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-emerald-500/30">
       
-      {/* --- BACKGROUND DECORATION --- */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
-        <div className="absolute top-[10%] right-[-5%] w-[600px] h-[600px] bg-emerald-200/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[10%] left-[-5%] w-[500px] h-[500px] bg-purple-200/20 rounded-full blur-[120px]"></div>
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(#10b981 1px, transparent 1px), linear-gradient(90deg, #10b981 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+      {/* --- AMBIENT BACKGROUND GLOWS --- */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[10%] right-[-5%] w-[600px] h-[600px] bg-emerald-900/20 rounded-full blur-[120px] mix-blend-screen"></div>
+        <div className="absolute bottom-[10%] left-[-5%] w-[500px] h-[500px] bg-indigo-900/20 rounded-full blur-[120px] mix-blend-screen"></div>
+        {/* Tech Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(16,185,129,0.03)_1px,transparent_1px)] bg-[size:64px_64px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)]"></div>
       </div>
 
       {/* --- HEADER --- */}
-      <header className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950 pt-32 pb-24 px-6 relative overflow-hidden">
+      <header className="relative z-10 pt-32 pb-24 px-6 text-center">
         
         {/* Live Status Badge */}
-        <div className="absolute top-28 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full backdrop-blur-md mb-8">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-            </span>
-            <span className="text-emerald-400 text-xs font-bold tracking-widest uppercase">Systems Secure</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-950/50 border border-emerald-500/30 rounded-full backdrop-blur-md mb-8 shadow-[0_0_15px_rgba(16,185,129,0.2)] animate-in fade-in slide-in-from-top-4 duration-1000">
+           <span className="relative flex h-2 w-2">
+             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+           </span>
+           <span className="text-emerald-400 text-xs font-bold tracking-widest uppercase">Systems Operational</span>
         </div>
 
-        <div className="max-w-4xl mx-auto relative z-10 text-center mt-8">
-          <div className="inline-flex items-center justify-center p-4 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 mb-6 shadow-2xl shadow-emerald-900/20">
-            <ShieldCheck size={40} className="text-emerald-400" />
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="inline-flex items-center justify-center p-5 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 mb-8 shadow-2xl shadow-emerald-500/10">
+            <ShieldCheck size={48} className="text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight">
-            Uncompromising <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Security</span>
+          
+          <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter text-white drop-shadow-2xl">
+            Uncompromising <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Security</span>
           </h1>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-            We protect your workforce data with the same level of security used by global financial institutions. Sleep soundly knowing your operations are safe.
+          
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            We protect your workforce data with the same level of encryption and protocol used by global financial institutions.
           </p>
-        </div>
-
-        {/* Separator */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none translate-y-[1px]">
-          <svg className="relative block w-full h-[60px] md:h-[100px]" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5,73.84-4.36,147.54,16.88,218.2,35.26,69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-1.11,1200,0.47V120H0Z" fill="#fcfaff"></path>
-          </svg>
         </div>
       </header>
 
       {/* --- MAIN CONTENT --- */}
-      <main className="max-w-6xl mx-auto px-6 py-20 relative z-10">
+      <main className="max-w-7xl mx-auto px-6 py-20 relative z-10">
         
         {/* Compliance Badges Strip */}
-        <div className="flex flex-wrap justify-center gap-4 mb-16">
+        <div className="flex flex-wrap justify-center gap-4 mb-20">
           {complianceBadges.map((badge) => (
-            <div key={badge.name} className={`px-6 py-2 rounded-full font-bold text-sm border flex items-center gap-2 ${badge.color}`}>
-              <Check size={16} />
+            <div key={badge.name} className={`px-6 py-2.5 rounded-full font-bold text-sm border flex items-center gap-2 backdrop-blur-sm transition-transform hover:scale-105 ${badge.color}`}>
+              <Check size={16} strokeWidth={3} />
               {badge.name}
             </div>
           ))}
         </div>
 
         {/* Feature Grid */}
-        <div className="grid md:grid-cols-2 gap-8 mb-20">
+        <div className="grid md:grid-cols-2 gap-6 mb-24">
           {securityFeatures.map((feature, idx) => (
             <div 
               key={idx} 
-              className="group bg-white/80 backdrop-blur-md p-8 rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/50 hover:shadow-emerald-900/10 hover:-translate-y-1 transition-all duration-500"
+              className="group bg-white/[0.02] backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 hover:border-emerald-500/30 hover:bg-white/[0.04] transition-all duration-500 relative overflow-hidden"
             >
-              <div className="flex flex-col sm:flex-row gap-6">
+              {/* Hover Gradient Blob */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[50px] -mr-10 -mt-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+              <div className="flex flex-col sm:flex-row gap-6 relative z-10">
                 <div className="flex-shrink-0">
-                  <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 group-hover:scale-110 transition-transform duration-500 shadow-inner">
+                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 group-hover:border-emerald-500/30 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-500">
                     {feature.icon}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                  <p className="text-slate-600 leading-relaxed">
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-emerald-300 transition-colors">{feature.title}</h3>
+                  <p className="text-slate-400 leading-relaxed text-sm">
                     {feature.desc}
                   </p>
                 </div>
@@ -221,31 +219,39 @@ const SecurityPage = () => {
         </div>
 
         {/* "Whitepaper" CTA Section */}
-        <div className="bg-slate-900 rounded-[3rem] p-10 md:p-16 relative overflow-hidden shadow-2xl shadow-slate-900/30">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
-            <div className="text-left max-w-xl">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold mb-4 uppercase tracking-widest text-xs">
-                <FileCheck size={16} /> Technical Documentation
+        <div className="relative group">
+           <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-[3rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+           
+           <div className="bg-slate-900/90 backdrop-blur-2xl rounded-[3rem] p-10 md:p-16 relative overflow-hidden border border-white/10 shadow-2xl">
+              {/* Inner ambient light */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none"></div>
+              
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+                <div className="text-left max-w-xl">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold mb-4 uppercase tracking-widest text-xs">
+                    <Shield size={16} /> Technical Documentation
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-black text-white mb-6">
+                    Audit-ready security. <br/>
+                    <span className="text-slate-400">Verified by experts.</span>
+                  </h2>
+                  <p className="text-slate-400 text-lg leading-relaxed">
+                    Download our comprehensive Security Whitepaper. It covers our penetration testing results, disaster recovery plans, and data handling policies in detail.
+                  </p>
+                </div>
+                
+                <div className="flex-shrink-0">
+                  <button 
+                    onClick={generateWhitepaper}
+                    className="group/btn bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-8 py-4 rounded-xl font-bold transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_40px_rgba(16,185,129,0.6)] cursor-pointer flex items-center gap-3"
+                  >
+                    <FileCheck size={20} />
+                    Download Whitepaper 
+                    <ArrowRight size={20} className="group-hover/btn:translate-x-1 transition-transform" />
+                  </button>
+                </div>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Need details for your IT team?
-              </h2>
-              <p className="text-slate-400 text-lg">
-                Download our comprehensive Security Whitepaper. It covers our penetration testing results, disaster recovery plans, and data handling policies.
-              </p>
-            </div>
-            <div className="flex-shrink-0">
-              <button 
-                onClick={generateWhitepaper}
-                className="bg-emerald-500 text-emerald-950 px-8 py-4 rounded-2xl font-bold hover:bg-emerald-400 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-95 cursor-pointer flex items-center gap-2"
-              >
-                Download Whitepaper <ArrowRight size={18} />
-              </button>
-            </div>
-          </div>
+           </div>
         </div>
 
       </main>
