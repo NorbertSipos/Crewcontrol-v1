@@ -27,7 +27,7 @@ const PricingPage = () => {
       btnText: "Start Free Trial",
       isPopular: false,
       features: [
-        "Up to 10 employees",
+        "Up to 30 employees",
         "Drag-and-drop scheduling",
         "Mobile pulse app",
         "Shift swap requests",
@@ -50,7 +50,7 @@ const PricingPage = () => {
       isPopular: true,
       btnText: "Start 14-Day Trial",
       features: [
-        "Up to 50 employees",
+        "Up to 100 employees",
         "Automated shift filling",
         "In-app messaging",
         "Payroll exports (QuickBooks, Xero, ADP)",

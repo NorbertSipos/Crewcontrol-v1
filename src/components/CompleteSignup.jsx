@@ -642,7 +642,7 @@ const CompleteSignup = () => {
                           price: '$19.99',
                           period: '/mo',
                           desc: 'Perfect for small teams',
-                          features: ['Up to 10 employees', 'All core features', 'Email support']
+                          features: ['Up to 30 employees', 'All core features', 'Email support']
                         },
                         {
                           id: 'professional',
@@ -650,7 +650,7 @@ const CompleteSignup = () => {
                           price: '$49.99',
                           period: '/mo',
                           desc: 'For growing businesses',
-                          features: ['Up to 50 employees', 'Advanced features', 'Priority support']
+                          features: ['Up to 100 employees', 'Advanced features', 'Priority support']
                         }
                       ].map(plan => (
                         <button

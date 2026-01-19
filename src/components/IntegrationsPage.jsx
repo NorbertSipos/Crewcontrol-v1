@@ -9,28 +9,28 @@ const IntegrationsPage = () => {
       category: 'Payroll',
       description: 'Export timesheets directly to QuickBooks for seamless payroll processing.',
       icon: '💰',
-      status: 'Available'
+      status: 'Coming Soon'
     },
     {
       name: 'ADP',
       category: 'Payroll',
       description: 'Sync employee hours with ADP for automated payroll calculations.',
       icon: '📊',
-      status: 'Available'
+      status: 'Coming Soon'
     },
     {
       name: 'Xero',
       category: 'Accounting',
       description: 'Connect CrewControl to Xero for integrated financial management.',
       icon: '💼',
-      status: 'Available'
+      status: 'Coming Soon'
     },
     {
       name: 'Google Calendar',
       category: 'Calendar',
       description: '2-way sync with Google Calendar. Shifts appear automatically in employee calendars.',
       icon: '📅',
-      status: 'Available'
+      status: 'Coming Soon'
     },
     {
       name: 'Slack',
@@ -71,7 +71,7 @@ const IntegrationsPage = () => {
           </h1>
           
           <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Connect CrewControl with the tools you already use. Seamless integrations for payroll, accounting, and communication.
+            Integrations are coming soon! We're focusing on perfecting the core product first. After launch, we'll add seamless connections with your favorite tools.
           </p>
         </div>
       </header>
@@ -87,12 +87,8 @@ const IntegrationsPage = () => {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="text-4xl">{integration.icon}</div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  integration.status === 'Available' 
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                    : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
-                }`}>
-                  {integration.status}
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                  Coming Soon
                 </span>
               </div>
               
@@ -100,13 +96,11 @@ const IntegrationsPage = () => {
               <p className="text-xs text-purple-400 mb-4 uppercase tracking-wider">{integration.category}</p>
               <p className="text-slate-400 text-sm leading-relaxed">{integration.description}</p>
               
-              {integration.status === 'Available' && (
-                <div className="mt-6 pt-6 border-t border-white/5">
-                  <span className="text-sm text-purple-400 group-hover:text-purple-300 transition-colors flex items-center gap-2">
-                    Learn More <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </div>
-              )}
+              <div className="mt-6 pt-6 border-t border-white/5">
+                <span className="text-sm text-slate-500 italic">
+                  Available after product launch
+                </span>
+              </div>
             </div>
           ))}
         </div>

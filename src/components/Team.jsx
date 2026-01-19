@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, Plus, Mail, Filter, MoreVertical, 
-  UserPlus, Briefcase, CheckCircle2, XCircle, Search
+  UserPlus, Briefcase, CheckCircle2, XCircle, Search, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
 import { sendInvitationEmail } from '../lib/emailService';
 import { createNotification } from '../lib/notificationService';
+import { hasFeature, canAddEmployee, getMaxEmployees, getRemainingEmployeeSlots } from '../lib/planFeatures';
 import DashboardLayout from './DashboardLayout';
 
 const Team = () => {
@@ -25,6 +26,7 @@ const Team = () => {
   const [teamFilter, setTeamFilter] = useState('all');
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [availableTeams, setAvailableTeams] = useState([]);
+  const [organization, setOrganization] = useState(null);
   const [inviteForm, setInviteForm] = useState({
     email: '',
     role: 'employee',
@@ -154,6 +156,26 @@ const Team = () => {
           console.error('Failed to fetch team members:', membersResponse.status, await membersResponse.text());
         }
 
+        // Fetch organization to get plan
+        const orgResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/organizations?id=eq.${userProfile.organization_id}&select=*`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (orgResponse.ok) {
+          const orgData = await orgResponse.json();
+          if (orgData && orgData.length > 0) {
+            setOrganization(orgData[0]);
+          }
+        }
+
       } catch (err) {
         console.error('Error fetching team data:', err);
       } finally {
@@ -188,6 +210,28 @@ const Team = () => {
 
       if (!accessToken) {
         alert('Error: No access token');
+        setInviteSubmitting(false);
+        return;
+      }
+
+      // Check plan-based restrictions
+      const currentPlan = organization?.plan || 'starter';
+      
+      // Check if HR role is available for this plan
+      if (inviteForm.role === 'hr' && !hasFeature(currentPlan, 'hrRoleAccess')) {
+        alert(`HR role is not available on the ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan. Please upgrade to Professional or Enterprise to invite HR users.`);
+        setInviteSubmitting(false);
+        return;
+      }
+
+      // Count current employees (excluding manager)
+      const currentEmployeeCount = teamMembers.filter(m => m.role === 'employee' && m.is_active).length;
+      
+      // Check if we can add more employees (only for employee role, not HR)
+      if (inviteForm.role === 'employee' && !canAddEmployee(currentPlan, currentEmployeeCount)) {
+        const maxEmployees = getMaxEmployees(currentPlan);
+        alert(`You've reached the employee limit for your ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan (${maxEmployees} employees). Please upgrade your plan to add more employees.`);
+        setInviteSubmitting(false);
         return;
       }
 
@@ -386,15 +430,80 @@ const Team = () => {
             </div>
             <button
               onClick={() => setShowInviteModal(true)}
+              disabled={(() => {
+                const currentPlan = organization?.plan || 'starter';
+                const currentEmployeeCount = teamMembers.filter(m => m.role === 'employee' && m.is_active).length;
+                return !canAddEmployee(currentPlan, currentEmployeeCount);
+              })()}
               className={`
                 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 
-                transition-all hover:scale-105 shadow-lg w-full sm:w-auto
-                bg-purple-600 hover:bg-purple-700 text-white
+                transition-all shadow-lg w-full sm:w-auto
+                ${(() => {
+                  const currentPlan = organization?.plan || 'starter';
+                  const currentEmployeeCount = teamMembers.filter(m => m.role === 'employee' && m.is_active).length;
+                  const canAdd = canAddEmployee(currentPlan, currentEmployeeCount);
+                  return canAdd
+                    ? 'bg-purple-600 hover:bg-purple-700 text-white hover:scale-105'
+                    : 'bg-slate-400 text-slate-200 cursor-not-allowed';
+                })()}
               `}
             >
               <UserPlus size={16} className="sm:w-[18px] sm:h-[18px]" /> Invite Member
             </button>
           </div>
+
+          {/* Plan Limit Warning */}
+          {(() => {
+            const currentPlan = organization?.plan || 'starter';
+            const currentEmployeeCount = teamMembers.filter(m => m.role === 'employee' && m.is_active).length;
+            const maxEmployees = getMaxEmployees(currentPlan);
+            const remainingSlots = getRemainingEmployeeSlots(currentPlan, currentEmployeeCount);
+            const canAdd = canAddEmployee(currentPlan, currentEmployeeCount);
+            
+            if (!canAdd || (typeof remainingSlots === 'number' && remainingSlots <= 2 && remainingSlots > 0)) {
+              return (
+                <div className={`
+                  rounded-xl sm:rounded-2xl p-4 sm:p-6 mb-6 sm:mb-8 backdrop-blur-sm
+                  ${!canAdd
+                    ? theme === 'dark'
+                      ? 'bg-red-900/20 border border-red-700/30'
+                      : 'bg-red-50 border border-red-200'
+                    : theme === 'dark'
+                      ? 'bg-amber-900/20 border border-amber-700/30'
+                      : 'bg-amber-50 border border-amber-200'
+                  }
+                `}>
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className={`flex-shrink-0 mt-0.5 ${
+                      !canAdd
+                        ? theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                        : theme === 'dark' ? 'text-amber-400' : 'text-amber-600'
+                    }`} size={20} />
+                    <div className="flex-1">
+                      <h3 className={`font-bold mb-1 ${
+                        !canAdd
+                          ? theme === 'dark' ? 'text-red-300' : 'text-red-700'
+                          : theme === 'dark' ? 'text-amber-300' : 'text-amber-700'
+                      }`}>
+                        {!canAdd ? 'Employee Limit Reached' : 'Approaching Employee Limit'}
+                      </h3>
+                      <p className={`text-sm ${
+                        !canAdd
+                          ? theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                          : theme === 'dark' ? 'text-amber-400' : 'text-amber-600'
+                      }`}>
+                        {!canAdd
+                          ? `You've reached the employee limit for your ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan (${maxEmployees} employees). Upgrade to add more team members.`
+                          : `You have ${remainingSlots} employee slot${remainingSlots === 1 ? '' : 's'} remaining on your ${currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1)} plan. Consider upgrading for more capacity.`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -432,6 +541,20 @@ const Team = () => {
               <p className={`text-2xl sm:text-3xl font-black ${
                 theme === 'dark' ? 'text-white' : 'text-slate-900'
               }`}>{teamMembers.filter(m => m.role === 'employee').length}</p>
+              {organization?.plan && (
+                <p className={`text-xs mt-1 ${
+                  theme === 'dark' ? 'text-slate-500' : 'text-slate-600'
+                }`}>
+                  {(() => {
+                    const currentCount = teamMembers.filter(m => m.role === 'employee' && m.is_active).length;
+                    const max = getMaxEmployees(organization.plan);
+                    const remaining = getRemainingEmployeeSlots(organization.plan, currentCount);
+                    return max === Infinity 
+                      ? 'Unlimited'
+                      : `${remaining} of ${max} slots remaining`;
+                  })()}
+                </p>
+              )}
             </div>
 
             <div className={`
@@ -779,6 +902,37 @@ const Team = () => {
               theme === 'dark' ? 'text-white' : 'text-slate-900'
             }`}>Invite Team Member</h2>
             
+            {/* Plan Limit Warning in Modal */}
+            {(() => {
+              const currentPlan = organization?.plan || 'starter';
+              const currentEmployeeCount = teamMembers.filter(m => m.role === 'employee' && m.is_active).length;
+              const canAdd = canAddEmployee(currentPlan, currentEmployeeCount);
+              
+              if (!canAdd && inviteForm.role === 'employee') {
+                return (
+                  <div className={`
+                    rounded-xl p-4 mb-4
+                    ${theme === 'dark'
+                      ? 'bg-red-900/20 border border-red-700/30'
+                      : 'bg-red-50 border border-red-200'
+                    }
+                  `}>
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className={`flex-shrink-0 mt-0.5 ${
+                        theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                      }`} size={16} />
+                      <p className={`text-sm ${
+                        theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                      }`}>
+                        You've reached the employee limit for your plan. Please upgrade to add more employees.
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+            
             <form onSubmit={handleInviteSubmit} className="space-y-4">
               <div>
                 <label className={`block text-sm font-semibold mb-2 ${
@@ -827,8 +981,20 @@ const Team = () => {
                   `}
                 >
                   <option value="employee">Employee</option>
-                  <option value="hr">HR</option>
+                  {hasFeature(organization?.plan || 'starter', 'hrRoleAccess') ? (
+                    <option value="hr">HR</option>
+                  ) : (
+                    <option value="hr" disabled>HR (Upgrade Required)</option>
+                  )}
                 </select>
+                {!hasFeature(organization?.plan || 'starter', 'hrRoleAccess') && (
+                  <p className={`mt-2 text-xs flex items-center gap-1 ${
+                    theme === 'dark' ? 'text-amber-400' : 'text-amber-600'
+                  }`}>
+                    <AlertCircle size={14} />
+                    HR role requires Professional or Enterprise plan
+                  </p>
+                )}
               </div>
 
               {inviteForm.role === 'employee' && (

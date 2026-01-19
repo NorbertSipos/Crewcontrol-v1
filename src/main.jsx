@@ -14,6 +14,7 @@ import ScrollToTop from './components/ScrollToTop.jsx'
 // Import Page Components
 import LandingPage from './App.jsx' 
 import ChangelogPage from './components/Changelog.jsx'
+import RoadmapPage from './components/Roadmap.jsx'
 import DocumentationPage from './components/Documentation.jsx'
 import APIPage from './components/APIPage.jsx'
 import PrivacyPage from './components/PrivacyPage.jsx'
@@ -60,6 +61,7 @@ function Main() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/changelog" element={<ChangelogPage />} />
+          <Route path="/roadmap" element={<RoadmapPage />} />
           <Route path="/documentation" element={<DocumentationPage />} />
           <Route path="/api" element={<APIPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />

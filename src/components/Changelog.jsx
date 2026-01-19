@@ -1,32 +1,32 @@
 import React from 'react';
-import { Calendar, ChevronRight, Zap, Sparkles, Send, Activity } from 'lucide-react';
+import { Calendar, ChevronRight, Zap, Sparkles, Send, Activity, Shield, Users, Bell, Settings, CheckCircle2, ArrowRight, Star } from 'lucide-react';
 
 const ChangelogPage = () => {
   
   const updates = [
     {
-      version: "v2.4.0",
-      date: "March 10, 2024",
-      title: "AI Forecasting & Smart Scheduling",
-      description: "We've introduced intelligent forecasting to help you plan labor needs based on historical data patterns. The AI engine now analyzes over 50 data points to predict staffing requirements.",
+      version: "v0.9.5",
+      date: "December 2024",
+      title: "Plan-Based Restrictions & Enhanced Team Management",
+      description: "We've implemented comprehensive plan-based restrictions to ensure fair usage across all subscription tiers. Starter plans are now limited to 30 employees with HR role access restricted to Professional and Enterprise plans. The system now enforces employee limits before invitations, displays real-time remaining slots, and shows clear upgrade prompts when limits are reached. Enhanced team management includes visual warnings, disabled invite buttons at capacity, and detailed plan limit information in the stats dashboard.",
       category: "Feature",
-      tags: ["AI", "Enterprise"]
+      tags: ["Billing", "Team Management", "Plan Limits"]
     },
     {
-      version: "v2.3.5",
-      date: "February 28, 2024",
-      title: "Faster Mobile Access & Bug Fixes",
-      description: "Optimized mobile app loading speeds by 40% and improved the reliability of shift-swap notifications. The dashboard now caches frequent requests for instant loading.",
+      version: "v0.9.3",
+      date: "December 2024",
+      title: "Improved Navigation & User Experience",
+      description: "Reorganized sidebar navigation for managers with a more intuitive order: Overview, Build Team, Team, and Shift Templates. Fixed avatar dropdown menu functionality across all pages, ensuring consistent access to Settings and Logout options. Enhanced user menu with smooth animations and better visual feedback.",
       category: "Improvement",
-      tags: ["Mobile", "Performance"]
+      tags: ["UX", "Navigation", "UI"]
     },
     {
-      version: "v2.3.0",
-      date: "February 12, 2024",
-      title: "Public API Beta Launch",
-      description: "External API access is now available for Enterprise clients. You can now sync your internal systems seamlessly with our REST endpoints.",
-      category: "API",
-      tags: ["Integration", "Enterprise"]
+      version: "v0.9.1",
+      date: "December 2024",
+      title: "Modern Toast Notifications with Animations",
+      description: "Introduced beautiful, animated toast notifications for shift deletion and other key actions. Notifications feature slide-in animations, fade effects, scale transitions, and shimmer effects. Success messages now appear in the bottom-right corner with modern gradient backgrounds and auto-dismiss after 3 seconds.",
+      category: "Feature",
+      tags: ["Notifications", "Animations", "UX"]
     }
   ];
 
@@ -73,46 +73,65 @@ const ChangelogPage = () => {
               </div>
               
               {/* Update Card */}
-              <div className="bg-white/[0.02] backdrop-blur-md border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all duration-500 shadow-xl group-hover:shadow-2xl group-hover:shadow-purple-500/5">
+              <div className="bg-gradient-to-br from-white/[0.03] to-white/[0.01] backdrop-blur-md border border-white/10 p-8 md:p-10 rounded-3xl hover:bg-gradient-to-br hover:from-white/[0.05] hover:to-white/[0.02] hover:border-purple-500/40 transition-all duration-500 shadow-xl group-hover:shadow-2xl group-hover:shadow-purple-500/10 relative overflow-hidden">
                 
-                {/* Meta Header */}
-                <div className="flex flex-wrap items-center gap-4 mb-6">
-                  <span className={`px-3 py-1 rounded-lg text-xs font-bold tracking-wider uppercase border ${
-                    update.category === 'Feature' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                    update.category === 'Improvement' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  }`}>
-                    {update.category}
-                  </span>
-                  
-                  <div className="flex items-center text-slate-500 text-sm font-medium">
-                    <Calendar size={14} className="mr-2 text-slate-600" />
-                    {update.date}
-                  </div>
-                  
-                  <div className="flex-grow"></div>
-                  
-                  <span className="font-mono text-xs text-slate-500 border border-white/10 px-2 py-1 rounded bg-black/20">
-                    {update.version}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-2 group-hover/card:text-purple-300 transition-colors">
-                  {update.title}
-                </h3>
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -z-0"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl -z-0"></div>
                 
-                <p className="text-slate-400 text-lg leading-relaxed mb-8">
-                  {update.description}
-                </p>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 border-t border-white/5 pt-6">
-                  {update.tags.map(tag => (
-                    <span key={tag} className="text-xs font-medium text-slate-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 hover:text-white hover:border-white/20 transition-colors cursor-default">
-                      #{tag}
+                <div className="relative z-10">
+                  {/* Meta Header */}
+                  <div className="flex flex-wrap items-center gap-4 mb-6">
+                    <span className={`px-4 py-1.5 rounded-lg text-xs font-bold tracking-wider uppercase border backdrop-blur-sm ${
+                      update.category === 'Feature' ? 'bg-gradient-to-r from-purple-500/20 to-purple-600/10 text-purple-300 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]' :
+                      update.category === 'Improvement' ? 'bg-gradient-to-r from-blue-500/20 to-blue-600/10 text-blue-300 border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]' :
+                      'bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 text-emerald-300 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
+                    }`}>
+                      {update.category === 'Feature' && <Sparkles size={12} className="inline mr-1.5" />}
+                      {update.category === 'Improvement' && <Zap size={12} className="inline mr-1.5" />}
+                      {update.category}
                     </span>
-                  ))}
+                    
+                    <div className="flex items-center text-slate-400 text-sm font-medium bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+                      <Calendar size={14} className="mr-2 text-slate-500" />
+                      {update.date}
+                    </div>
+                    
+                    <div className="flex-grow"></div>
+                    
+                    <span className="font-mono text-xs text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-lg bg-purple-500/10 backdrop-blur-sm shadow-[0_0_10px_rgba(168,85,247,0.1)]">
+                      {update.version}
+                    </span>
+                  </div>
+
+                  {/* Content */}
+                  <h3 className="text-3xl md:text-4xl font-black text-white mb-6 flex items-center gap-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 transition-all duration-500">
+                    <div className={`p-2 rounded-xl ${
+                      update.category === 'Feature' ? 'bg-purple-500/20 border border-purple-500/30' :
+                      update.category === 'Improvement' ? 'bg-blue-500/20 border border-blue-500/30' :
+                      'bg-emerald-500/20 border border-emerald-500/30'
+                    }`}>
+                      {update.category === 'Feature' && <Star size={20} className="text-purple-400" />}
+                      {update.category === 'Improvement' && <Zap size={20} className="text-blue-400" />}
+                    </div>
+                    {update.title}
+                  </h3>
+                  
+                  <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/30 rounded-2xl p-6 mb-8 border border-white/10 backdrop-blur-sm">
+                    <p className="text-slate-300 text-base md:text-lg leading-relaxed">
+                      {update.description}
+                    </p>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-3 border-t border-white/10 pt-6">
+                    {update.tags.map((tag, tagIndex) => (
+                      <span key={tag} className="group/tag text-xs font-semibold text-slate-300 bg-gradient-to-r from-white/10 to-white/5 px-4 py-2 rounded-lg border border-white/10 hover:text-white hover:border-purple-500/50 hover:bg-gradient-to-r hover:from-purple-500/20 hover:to-purple-600/10 transition-all duration-300 cursor-default flex items-center gap-2 shadow-sm hover:shadow-purple-500/20">
+                        <CheckCircle2 size={12} className="opacity-50 group-hover/tag:opacity-100 group-hover/tag:text-purple-400 transition-all" />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

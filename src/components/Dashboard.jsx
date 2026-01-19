@@ -5,7 +5,7 @@ import {
   Search, Bell, Plus, Clock, AlertTriangle, 
   ChevronRight, ChevronLeft, MoreVertical, CheckCircle2, Zap, Filter,
   Moon, Sun, TrendingUp, TrendingDown, Activity, FileText, Timer, UserCheck, CalendarCheck, Mail,
-  Edit2, Trash2, MapPin, X, CalendarDays, Grid3x3
+  Edit2, Trash2, MapPin, X, CalendarDays, Grid3x3, LogOut
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -78,12 +78,14 @@ const MetricCard = ({ metric, theme, loading }) => {
 };
 
 const Dashboard = () => {
-  const { user, userProfile, loading: authLoading } = useAuth();
+  const { user, userProfile, loading: authLoading, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef(null);
   const [view, setView] = useState('weekly');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [metricsData, setMetricsData] = useState({
@@ -129,6 +131,7 @@ const Dashboard = () => {
   const [scheduleTemplates, setScheduleTemplates] = useState([]);
   const [draggedShift, setDraggedShift] = useState(null);
   const [dragOverCell, setDragOverCell] = useState(null);
+  const [showToast, setShowToast] = useState(false);
   const prevLocationRef = useRef(location.pathname);
 
   // Modular metrics configuration - connected to real data
@@ -1361,6 +1364,12 @@ const Dashboard = () => {
       }
 
       await fetchShifts(accessToken);
+      
+      // Show success toast
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 3000); // Auto-dismiss after 3 seconds
     } catch (error) {
       console.error('Error deleting shift:', error);
       alert('Error deleting shift: ' + error.message);
@@ -1381,6 +1390,23 @@ const Dashboard = () => {
 
   const days = view === 'weekly' ? getWeekDays() : getMonthDays();
   const isManager = userProfile?.role === 'manager';
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   if (authLoading || !user || !userProfile?.organization_id) {
     return (
@@ -1441,9 +1467,9 @@ const Dashboard = () => {
         <nav className="flex-1 w-full px-2 sm:px-3 space-y-1 sm:space-y-2">
           {[
             { icon: <LayoutDashboard size={20} />, label: "Overview", path: "/dashboard", active: location.pathname === '/dashboard' },
-            { icon: <Calendar size={20} />, label: "Shift Templates", path: "/schedule", active: location.pathname === '/schedule', roles: ['manager'] },
-            { icon: <Users size={20} />, label: "Team", path: "/team", active: location.pathname === '/team', roles: ['manager', 'hr'] },
             { icon: <Users size={20} />, label: "Build Team", path: "/build-team", active: location.pathname === '/build-team', roles: ['manager'] },
+            { icon: <Users size={20} />, label: "Team", path: "/team", active: location.pathname === '/team', roles: ['manager', 'hr'] },
+            { icon: <Calendar size={20} />, label: "Shift Templates", path: "/schedule", active: location.pathname === '/schedule', roles: ['manager'] },
             { icon: <BarChart3 size={20} />, label: "Analytics", path: "/analytics", roles: ['manager', 'hr'] },
             { icon: <Settings size={20} />, label: "Settings", path: "/settings" },
           ].filter(item => {
@@ -1556,11 +1582,154 @@ const Dashboard = () => {
               )}
             </button>
             
-            <img 
-              src={userProfile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile?.full_name || 'User')}&background=8b5cf6&color=fff`} 
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 border-purple-500/20 flex-shrink-0" 
-              alt="Avatar" 
-            />
+            {/* User Menu Dropdown */}
+            <div className="relative z-40" ref={userMenuRef}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setShowUserMenu(!showUserMenu);
+                }}
+                className={`
+                  relative flex items-center gap-2 transition-all duration-200
+                  cursor-pointer outline-none focus:outline-none
+                  ${showUserMenu 
+                    ? 'scale-95' 
+                    : 'hover:scale-105'
+                  }
+                `}
+                aria-label="User menu"
+              >
+                <img 
+                  src={userProfile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile?.full_name || 'User')}&background=8b5cf6&color=fff`} 
+                  className={`
+                    w-8 h-8 sm:w-10 sm:h-10 rounded-xl border-2 transition-all duration-200 pointer-events-none flex-shrink-0
+                    ${showUserMenu
+                      ? theme === 'dark' 
+                        ? 'border-purple-500 shadow-lg shadow-purple-500/50' 
+                        : 'border-purple-400 shadow-lg shadow-purple-400/50'
+                      : theme === 'dark'
+                        ? 'border-purple-500/20 hover:border-purple-500/50'
+                        : 'border-purple-300/50 hover:border-purple-400/70'
+                    }
+                  `}
+                  alt="Avatar" 
+                />
+                {showUserMenu && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse pointer-events-none"></div>
+                )}
+              </button>
+
+              {/* Dropdown Menu */}
+              {showUserMenu && (
+                <div 
+                  className={`
+                    absolute right-0 top-14 w-56 z-[100]
+                    transform transition-all duration-300 ease-out
+                    ${showUserMenu 
+                      ? 'opacity-100 translate-y-0 scale-100' 
+                      : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
+                    }
+                  `}
+                  style={{
+                    animation: 'slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1), fadeIn 0.3s ease-out'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <style>{`
+                    @keyframes slideDown {
+                      from {
+                        transform: translateY(-10px) scale(0.95);
+                        opacity: 0;
+                      }
+                      to {
+                        transform: translateY(0) scale(1);
+                        opacity: 1;
+                      }
+                    }
+                    @keyframes fadeIn {
+                      from { opacity: 0; }
+                      to { opacity: 1; }
+                    }
+                  `}</style>
+                  <div className={`
+                    rounded-2xl shadow-2xl border-2 backdrop-blur-xl overflow-hidden
+                    ${theme === 'dark'
+                      ? 'bg-slate-800/95 border-slate-700/50 shadow-slate-900/50'
+                      : 'bg-white/95 border-slate-200/50 shadow-slate-200/50'
+                    }
+                  `}>
+                    {/* User Info Header */}
+                    <div className={`
+                      px-4 py-3 border-b
+                      ${theme === 'dark' 
+                        ? 'border-slate-700 bg-gradient-to-r from-purple-600/20 to-indigo-600/20' 
+                        : 'border-slate-200 bg-gradient-to-r from-purple-50 to-indigo-50'
+                      }
+                    `}>
+                      <p className={`
+                        font-bold text-sm
+                        ${theme === 'dark' ? 'text-white' : 'text-slate-900'}
+                      `}>
+                        {userProfile?.full_name || 'User'}
+                      </p>
+                      <p className={`
+                        text-xs mt-0.5
+                        ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                      `}>
+                        {userProfile?.email || ''}
+                      </p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <div className="p-2">
+                      <button
+                        onClick={() => {
+                          navigate('/settings');
+                          setShowUserMenu(false);
+                        }}
+                        className={`
+                          w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                          ${theme === 'dark'
+                            ? 'hover:bg-slate-700/50 text-slate-300 hover:text-white'
+                            : 'hover:bg-slate-100 text-slate-700 hover:text-slate-900'
+                          }
+                          hover:scale-[1.02] active:scale-[0.98]
+                        `}
+                      >
+                        <Settings size={18} className="flex-shrink-0" />
+                        <span className="font-semibold text-sm">Settings</span>
+                      </button>
+
+                      <div className={`
+                        h-px my-1
+                        ${theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'}
+                      `}></div>
+
+                      <button
+                        onClick={async () => {
+                          await signOut();
+                          navigate('/signin');
+                          setShowUserMenu(false);
+                        }}
+                        className={`
+                          w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                          ${theme === 'dark'
+                            ? 'hover:bg-red-600/20 text-red-400 hover:text-red-300 border border-transparent hover:border-red-500/30'
+                            : 'hover:bg-red-50 text-red-600 hover:text-red-700 border border-transparent hover:border-red-300'
+                          }
+                          hover:scale-[1.02] active:scale-[0.98]
+                        `}
+                      >
+                        <LogOut size={18} className="flex-shrink-0" />
+                        <span className="font-semibold text-sm">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -2851,6 +3020,107 @@ const Dashboard = () => {
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
       />
+
+      {/* Success Toast Notification */}
+      {showToast && (
+        <div 
+          className={`
+            fixed bottom-6 right-6 z-[10000]
+            transform transition-all duration-500 ease-out
+            ${showToast 
+              ? 'opacity-100 translate-x-0 translate-y-0 scale-100' 
+              : 'opacity-0 translate-x-8 translate-y-4 scale-95'
+            }
+          `}
+          style={{
+            animation: showToast 
+              ? 'slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1), fadeIn 0.5s ease-out, scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
+              : 'none'
+          }}
+        >
+          <style>{`
+            @keyframes slideInRight {
+              from {
+                transform: translateX(100px) translateY(20px) scale(0.9);
+                opacity: 0;
+              }
+              to {
+                transform: translateX(0) translateY(0) scale(1);
+                opacity: 1;
+              }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes scaleIn {
+              from { transform: scale(0.9); }
+              to { transform: scale(1); }
+            }
+            @keyframes bounce {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-4px); }
+            }
+          `}</style>
+          <div className={`
+            flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl
+            backdrop-blur-xl border-2
+            ${theme === 'dark'
+              ? 'bg-gradient-to-r from-emerald-600/95 via-emerald-600/90 to-emerald-500/95 border-emerald-400/50 text-white shadow-emerald-500/20'
+              : 'bg-gradient-to-r from-emerald-50 via-emerald-50 to-emerald-100/80 border-emerald-300 text-emerald-900 shadow-emerald-200/50'
+            }
+            relative overflow-hidden
+          `}>
+            {/* Animated background gradient */}
+            <div className={`
+              absolute inset-0 opacity-20
+              ${theme === 'dark' 
+                ? 'bg-gradient-to-r from-emerald-400 via-emerald-300 to-emerald-400' 
+                : 'bg-gradient-to-r from-emerald-200 via-emerald-100 to-emerald-200'
+              }
+              animate-pulse
+            `}></div>
+            
+            {/* Shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+            <style>{`
+              @keyframes shimmer {
+                0% { transform: translateX(-100%) skewX(-15deg); }
+                100% { transform: translateX(200%) skewX(-15deg); }
+              }
+            `}</style>
+            
+            {/* Content */}
+            <div className="relative z-10 flex items-center gap-3">
+              <div className={`
+                p-2 rounded-xl
+                ${theme === 'dark'
+                  ? 'bg-emerald-500/20'
+                  : 'bg-emerald-200/50'
+                }
+                animate-[bounce_0.6s_ease-out_0.2s]
+              `}>
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              </div>
+              <div>
+                <p className="font-bold text-sm">Shift deleted successfully</p>
+              </div>
+              <button
+                onClick={() => setShowToast(false)}
+                className={`
+                  ml-2 p-1.5 rounded-lg transition-all duration-200
+                  ${theme === 'dark'
+                    ? 'hover:bg-emerald-700/50 active:scale-95'
+                    : 'hover:bg-emerald-100 active:scale-95'
+                  }
+                `}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

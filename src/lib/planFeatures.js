@@ -5,7 +5,7 @@
 
 export const PLAN_LIMITS = {
   starter: {
-    maxEmployees: 10,
+    maxEmployees: 30,
     features: {
       dragAndDropScheduling: true,
       mobileApp: true,
@@ -28,7 +28,7 @@ export const PLAN_LIMITS = {
     }
   },
   professional: {
-    maxEmployees: 50,
+    maxEmployees: 100,
     features: {
       dragAndDropScheduling: true,
       mobileApp: true,

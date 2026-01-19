@@ -3,12 +3,13 @@ import {
   Check, ChevronDown, ChevronUp, ArrowRight, 
   ShieldCheck, Briefcase, Smartphone, Play, Zap, Users, 
   Clock, BarChart3, Globe, Star, Crown, Quote, 
-  UserCheck, Calendar, CheckCircle2, TrendingUp, Award, Lock
+  UserCheck, Calendar, CheckCircle2, TrendingUp, Award, Lock, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const App = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
+  const [employeeCount, setEmployeeCount] = useState(30);
 
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -246,7 +247,7 @@ const App = () => {
                       </div>
                       <p className="text-slate-400 text-sm mb-6">Perfect for small crews getting started.</p>
                       <ul className="space-y-3 mb-8 text-sm text-slate-300 group-hover:text-slate-200">
-                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Up to 10 employees</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Up to 30 employees</li>
                          <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Drag-and-drop scheduling</li>
                          <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Mobile pulse app</li>
                          <li className="flex gap-2"><Check size={16} className="text-purple-500"/> Shift swap requests</li>
@@ -275,7 +276,7 @@ const App = () => {
                       </div>
                       <p className="text-purple-200 text-sm mb-6">Everything you need to scale operations.</p>
                       <ul className="space-y-3 mb-8 text-sm text-white">
-                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Up to 50 employees</li>
+                         <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Up to 100 employees</li>
                          <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Automated shift filling</li>
                          <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> In-app messaging</li>
                          <li className="flex gap-2"><Check size={16} className="text-purple-400 group-hover:text-purple-300"/> Payroll exports (QuickBooks, Xero, ADP)</li>
@@ -314,6 +315,240 @@ const App = () => {
 
               </div>
            </div>
+        </section>
+
+        {/* --- WHY CHOOSE US - PRICING COMPARISON SECTION --- */}
+        <section className="py-32 relative overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-900/10 to-transparent pointer-events-none"></div>
+          
+          <div className="max-w-6xl mx-auto px-6 relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-black mb-4">
+                Why Choose <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">CrewControl</span>?
+              </h2>
+              <p className="text-slate-400 text-lg mb-12">Compare pricing based on your team size</p>
+              
+              {/* Employee Slider */}
+              <div className="max-w-2xl mx-auto mb-16">
+                <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
+                  <label className="block text-center mb-6">
+                    <span className="text-2xl font-bold text-white mb-2 block">Number of Employees</span>
+                    <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                      {employeeCount}
+                    </span>
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value={employeeCount}
+                    onChange={(e) => setEmployeeCount(parseInt(e.target.value))}
+                    className="w-full h-3 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                  />
+                  <div className="flex justify-between text-xs text-slate-500 mt-2">
+                    <span>1</span>
+                    <span>50</span>
+                    <span>100</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pricing Comparison Cards */}
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
+              {/* CrewControl */}
+              <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 backdrop-blur-xl rounded-2xl border-2 border-purple-500/30 p-8 shadow-[0_0_40px_rgba(168,85,247,0.2)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+                    <span className="text-sm font-bold text-purple-300 uppercase tracking-wider">CrewControl</span>
+                  </div>
+                  <div className="mb-6">
+                    <div className="text-5xl font-black text-white mb-2">
+                      ${(() => {
+                        if (employeeCount <= 30) return '19.99';
+                        if (employeeCount <= 100) return '49.99';
+                        return 'Custom';
+                      })()}
+                    </div>
+                    <div className="text-slate-400 text-sm">per month</div>
+                  </div>
+                  <div className="space-y-2 text-sm text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-400" />
+                      <span>All core features included</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-400" />
+                      <span>14-day free trial</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-400" />
+                      <span>No per-user fees</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sling */}
+              <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-8 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Sling</span>
+                </div>
+                <div className="mb-6">
+                  <div className="text-5xl font-black text-white mb-2">
+                    {employeeCount <= 30 ? '$0' : `$${(employeeCount * 2).toFixed(0)}`}
+                  </div>
+                  <div className="text-slate-400 text-sm">
+                    {employeeCount <= 30 
+                      ? 'Free plan (≤30 users)' 
+                      : `Premium ($2/user/month)`
+                    }
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm text-slate-400">
+                  {employeeCount <= 30 ? (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-emerald-400" />
+                        <span>Free for up to 30 users</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <X size={16} className="text-red-400" />
+                        <span>Limited features (basic scheduling)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <X size={16} className="text-red-400" />
+                        <span>No time tracking included</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 size={16} className="text-emerald-400" />
+                        <span>Includes time tracking</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <X size={16} className="text-red-400" />
+                        <span>Per-user pricing adds up</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <X size={16} className="text-red-400" />
+                        <span>Limited advanced features</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Deputy */}
+              <div className="bg-slate-900/50 backdrop-blur-xl rounded-2xl border-2 border-white/10 p-8 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                  <span className="text-sm font-bold text-slate-400 uppercase tracking-wider">Deputy</span>
+                </div>
+                <div className="mb-6">
+                  <div className="text-5xl font-black text-white mb-2">
+                    ${(employeeCount * 4.5).toFixed(0)}
+                  </div>
+                  <div className="text-slate-400 text-sm">per month ($4.50/user)</div>
+                </div>
+                <div className="space-y-2 text-sm text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-400" />
+                    <span>Per-user pricing</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-emerald-400" />
+                    <span>31-day free trial</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <X size={16} className="text-red-400" />
+                    <span>Costs add up quickly</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Savings Highlight */}
+            <div className="bg-gradient-to-r from-emerald-500/20 to-emerald-600/10 rounded-2xl border border-emerald-500/30 p-8 text-center backdrop-blur-sm">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <TrendingUp size={32} className="text-emerald-400" />
+                <h3 className="text-2xl font-bold text-white">Save with CrewControl</h3>
+              </div>
+              <div className="space-y-4 mb-8">
+                {(() => {
+                  const crewcontrolPrice = employeeCount <= 30 ? 19.99 : employeeCount <= 100 ? 49.99 : 0;
+                  const slingPrice = employeeCount <= 30 ? 0 : employeeCount * 2; // Free for ≤30, $2/user for >30
+                  const deputyPrice = employeeCount * 4.5;
+                  const slingSavings = slingPrice - crewcontrolPrice;
+                  const deputySavings = deputyPrice - crewcontrolPrice;
+                  
+                  return (
+                    <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                      <div className={`rounded-xl p-6 border ${
+                        slingSavings > 0 
+                          ? 'bg-slate-900/40 border-emerald-500/20' 
+                          : 'bg-slate-900/40 border-slate-700/50'
+                      }`}>
+                        <div className="text-sm text-slate-400 mb-2">vs Sling</div>
+                        {slingSavings > 0 ? (
+                          <>
+                            <div className="text-3xl font-black text-emerald-400 mb-1">
+                              ${slingSavings.toFixed(2)}
+                              <span className="text-lg text-slate-400">/month saved</span>
+                            </div>
+                            <div className="text-xs text-slate-500">
+                              Sling: ${slingPrice.toFixed(2)}/mo | CrewControl: ${crewcontrolPrice.toFixed(2)}/mo
+                            </div>
+                          </>
+                        ) : slingSavings < 0 ? (
+                          <>
+                            <div className="text-lg font-bold text-slate-400 mb-1">
+                              ${Math.abs(slingSavings).toFixed(2)}/mo more
+                            </div>
+                            <div className="text-xs text-slate-500 mb-2">
+                              Sling Free: $0/mo | CrewControl: ${crewcontrolPrice.toFixed(2)}/mo
+                            </div>
+                            <div className="text-xs text-slate-600">
+                              Sling Free has no time tracking • Limited features
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-lg font-bold text-slate-300 mb-2">
+                              Same Price, More Value
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              Both: ${crewcontrolPrice.toFixed(2)}/mo - CrewControl includes more features
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <div className="bg-slate-900/40 rounded-xl p-6 border border-emerald-500/20">
+                        <div className="text-sm text-slate-400 mb-2">vs Deputy</div>
+                        <div className="text-3xl font-black text-emerald-400 mb-1">
+                          ${deputySavings.toFixed(2)}
+                          <span className="text-lg text-slate-400">/month saved</span>
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          Deputy: ${deputyPrice.toFixed(2)}/mo | CrewControl: ${crewcontrolPrice.toFixed(2)}/mo
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+              <Link to="/pricing">
+                <button className="px-8 py-4 bg-white text-slate-950 rounded-xl font-bold hover:bg-purple-50 transition-all shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 active:scale-95 cursor-pointer inline-flex items-center gap-2">
+                  Start Free Trial <ArrowRight size={18} />
+                </button>
+              </Link>
+            </div>
+          </div>
         </section>
 
         {/* --- TESTIMONIALS SECTION --- */}
