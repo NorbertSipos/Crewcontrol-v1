@@ -518,7 +518,7 @@ const Team = () => {
                 <span className={`text-xs sm:text-sm font-semibold ${
                   theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
                 }`}>Total Members</span>
-                <Users className={theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} size={18} className="sm:w-5 sm:h-5" />
+                <Users className={`${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'} sm:w-5 sm:h-5`} size={18} />
               </div>
               <p className={`text-2xl sm:text-3xl font-black ${
                 theme === 'dark' ? 'text-white' : 'text-slate-900'
@@ -536,7 +536,7 @@ const Team = () => {
                 <span className={`text-xs sm:text-sm font-semibold ${
                   theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
                 }`}>Employees</span>
-                <Briefcase className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} size={18} className="sm:w-5 sm:h-5" />
+                <Briefcase className={`${theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} sm:w-5 sm:h-5`} size={18} />
               </div>
               <p className={`text-2xl sm:text-3xl font-black ${
                 theme === 'dark' ? 'text-white' : 'text-slate-900'
@@ -568,7 +568,7 @@ const Team = () => {
                 <span className={`text-xs sm:text-sm font-semibold ${
                   theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
                 }`}>HR Staff</span>
-                <Users className={theme === 'dark' ? 'text-purple-400' : 'text-purple-600'} size={18} className="sm:w-5 sm:h-5" />
+                <Users className={`${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'} sm:w-5 sm:h-5`} size={18} />
               </div>
               <p className={`text-2xl sm:text-3xl font-black ${
                 theme === 'dark' ? 'text-white' : 'text-slate-900'
@@ -586,7 +586,7 @@ const Team = () => {
                 <span className={`text-xs sm:text-sm font-semibold ${
                   theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
                 }`}>Pending Invites</span>
-                <Mail className={theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} size={18} className="sm:w-5 sm:h-5" />
+                <Mail className={`${theme === 'dark' ? 'text-amber-400' : 'text-amber-600'} sm:w-5 sm:h-5`} size={18} />
               </div>
               <p className={`text-2xl sm:text-3xl font-black ${
                 theme === 'dark' ? 'text-white' : 'text-slate-900'
