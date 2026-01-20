@@ -4,6 +4,7 @@ import { User, Building2, Lock, Bell, Save, Loader, Eye, EyeOff } from 'lucide-r
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { supabase } from '../lib/supabase';
+import { getMaxEmployees } from '../lib/planFeatures';
 import DashboardLayout from './DashboardLayout';
 
 const Settings = () => {
@@ -41,6 +42,8 @@ const Settings = () => {
     industry: '',
     workType: 'remote',
     plan: 'starter',
+    daysOffPerWeek: 2,
+    daysOffDistribution: 'random', // 'random' or 'weekends'
   });
   const [organization, setOrganization] = useState(null);
   
@@ -109,6 +112,8 @@ const Settings = () => {
                 industry: org.industry || '',
                 workType: org.work_type || 'remote',
                 plan: org.plan || 'starter',
+                daysOffPerWeek: org.days_off_per_week || 2,
+                daysOffDistribution: org.days_off_distribution || 'random',
               });
             }
           }
@@ -366,6 +371,8 @@ const Settings = () => {
             industry: orgData.industry,
             work_type: orgData.workType,
             plan: orgData.plan,
+            days_off_per_week: parseInt(orgData.daysOffPerWeek) || 2,
+            days_off_distribution: orgData.daysOffDistribution || 'random',
             updated_at: new Date().toISOString(),
           }),
         }
@@ -799,10 +806,77 @@ const Settings = () => {
                       }
                     `}
                   >
-                    <option value="starter">Starter</option>
-                    <option value="professional">Professional</option>
-                    <option value="enterprise">Enterprise</option>
+                    <option value="starter">Starter - Up to {getMaxEmployees('starter')} employees</option>
+                    <option value="professional">Professional - Up to {getMaxEmployees('professional')} employees</option>
+                    <option value="enterprise">Enterprise - Unlimited employees</option>
                   </select>
+                  <p className={`mt-2 text-xs ${
+                    theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                  }`}>
+                    {orgData.plan === 'enterprise' 
+                      ? 'Unlimited employees and all features included'
+                      : `Current plan allows up to ${getMaxEmployees(orgData.plan)} employees`
+                    }
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${
+                    theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
+                    Days Off Per Week
+                  </label>
+                  <select
+                    name="daysOffPerWeek"
+                    value={orgData.daysOffPerWeek}
+                    onChange={handleOrgChange}
+                    className={`
+                      w-full px-4 py-3 rounded-xl border outline-none transition-colors cursor-pointer
+                      ${theme === 'dark'
+                        ? 'bg-slate-700 border-slate-600 text-white focus:border-purple-500'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-purple-500'
+                      }
+                    `}
+                  >
+                    <option value={1}>1 Day Off Per Week</option>
+                    <option value={2}>2 Days Off Per Week (Default)</option>
+                  </select>
+                  <p className={`mt-2 text-xs ${
+                    theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                  }`}>
+                    This setting controls how many rest days each employee will have when using Auto-Fill
+                  </p>
+                </div>
+
+                <div>
+                  <label className={`block text-sm font-semibold mb-2 ${
+                    theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                  }`}>
+                    Days Off Distribution
+                  </label>
+                  <select
+                    name="daysOffDistribution"
+                    value={orgData.daysOffDistribution}
+                    onChange={handleOrgChange}
+                    className={`
+                      w-full px-4 py-3 rounded-xl border outline-none transition-colors cursor-pointer
+                      ${theme === 'dark'
+                        ? 'bg-slate-700 border-slate-600 text-white focus:border-purple-500'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-purple-500'
+                      }
+                    `}
+                  >
+                    <option value="random">Random Distribution</option>
+                    <option value="weekends">Always on Weekends (Saturday & Sunday)</option>
+                  </select>
+                  <p className={`mt-2 text-xs ${
+                    theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                  }`}>
+                    {orgData.daysOffDistribution === 'weekends' 
+                      ? 'Employees will always have weekends off (Saturday & Sunday)'
+                      : 'Days off will be distributed randomly throughout the week'
+                    }
+                  </p>
                 </div>
 
                 <button

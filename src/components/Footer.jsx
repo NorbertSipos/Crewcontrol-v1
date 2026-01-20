@@ -45,6 +45,14 @@ const Footer = () => {
             <ul className="space-y-4 text-sm">
               <li><Link to="/blog" className="hover:text-purple-400 transition-colors cursor-pointer">Blog</Link></li>
               <li><Link to="/integrations" className="hover:text-purple-400 transition-colors cursor-pointer">Integrations</Link></li>
+              <li className="pt-2">
+                <div className="text-xs text-slate-500 uppercase tracking-wider mb-2">Comparisons</div>
+                <ul className="space-y-3 ml-2">
+                  <li><Link to="/deputy-alternative" className="hover:text-purple-400 transition-colors cursor-pointer">vs Deputy</Link></li>
+                  <li><Link to="/crewcontrol-vs-connecteam" className="hover:text-purple-400 transition-colors cursor-pointer">vs Connecteam</Link></li>
+                  <li><Link to="/excel-replacement" className="hover:text-purple-400 transition-colors cursor-pointer">Excel Replacement</Link></li>
+                </ul>
+              </li>
             </ul>
           </div>
 

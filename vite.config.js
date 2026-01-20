@@ -1,23 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import viteCompression from 'vite-plugin-compression'
 
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss(),
-    // Enable text compression (gzip) for better performance
-    viteCompression({
-      algorithm: 'gzip',
-      ext: '.gz',
-      // Compress files larger than 1kb
-      threshold: 1024,
-      // Only compress in production builds
-      deleteOriginFile: false,
-      // Files to compress
-      filter: /\.(js|mjs|json|css|html|svg|xml|txt)$/i,
-    }),
+    tailwindcss(), 
   ],
   build: {
     // Enable code splitting for better performance

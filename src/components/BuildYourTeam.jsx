@@ -61,6 +61,7 @@ const BuildYourTeam = () => {
   const [editingTeam, setEditingTeam] = useState(null);
   const [teamForm, setTeamForm] = useState({ name: '', description: '' });
   const [teamSubmitting, setTeamSubmitting] = useState(false);
+  const [teamUsers, setTeamUsers] = useState({}); // { teamId: [users] }
   
   // Locations state
   const [locations, setLocations] = useState([]);
@@ -158,9 +159,30 @@ const BuildYourTeam = () => {
           `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/teams?organization_id=eq.${userProfile.organization_id}&is_active=eq.true&select=*&order=name.asc`,
           { method: 'GET', headers }
         );
+        let teamsData = [];
         if (teamsResponse.ok) {
-          const teamsData = await teamsResponse.json();
+          teamsData = await teamsResponse.json();
           setTeams(teamsData || []);
+        }
+
+        // Fetch users for all teams
+        const usersResponse = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?organization_id=eq.${userProfile.organization_id}&role=eq.employee&is_active=eq.true&select=id,full_name,email,job_title,team_id&order=full_name.asc`,
+          { method: 'GET', headers }
+        );
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          // Group users by team_id
+          const usersByTeam = {};
+          usersData.forEach(user => {
+            if (user.team_id) {
+              if (!usersByTeam[user.team_id]) {
+                usersByTeam[user.team_id] = [];
+              }
+              usersByTeam[user.team_id].push(user);
+            }
+          });
+          setTeamUsers(usersByTeam);
         }
 
         // Fetch locations (only if on-site or hybrid)
@@ -257,6 +279,25 @@ const BuildYourTeam = () => {
         setTeams(data || []);
       }
 
+      // Refresh users for teams
+      const usersRefreshResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?organization_id=eq.${userProfile.organization_id}&role=eq.employee&is_active=eq.true&select=id,full_name,email,job_title,team_id&order=full_name.asc`,
+        { method: 'GET', headers }
+      );
+      if (usersRefreshResponse.ok) {
+        const usersData = await usersRefreshResponse.json();
+        const usersByTeam = {};
+        usersData.forEach(user => {
+          if (user.team_id) {
+            if (!usersByTeam[user.team_id]) {
+              usersByTeam[user.team_id] = [];
+            }
+            usersByTeam[user.team_id].push(user);
+          }
+        });
+        setTeamUsers(usersByTeam);
+      }
+
       setShowTeamModal(false);
       setTeamSubmitting(false);
     } catch (error) {
@@ -298,6 +339,32 @@ const BuildYourTeam = () => {
       }
 
       setTeams(teams.filter(t => t.id !== teamId));
+      
+      // Refresh users to update team assignments
+      const usersRefreshResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?organization_id=eq.${userProfile.organization_id}&role=eq.employee&is_active=eq.true&select=id,full_name,email,job_title,team_id&order=full_name.asc`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
+      if (usersRefreshResponse.ok) {
+        const usersData = await usersRefreshResponse.json();
+        const usersByTeam = {};
+        usersData.forEach(user => {
+          if (user.team_id) {
+            if (!usersByTeam[user.team_id]) {
+              usersByTeam[user.team_id] = [];
+            }
+            usersByTeam[user.team_id].push(user);
+          }
+        });
+        setTeamUsers(usersByTeam);
+      }
     } catch (error) {
       console.error('Error deleting team:', error);
       alert('Error deleting team: ' + error.message);
@@ -705,6 +772,73 @@ const BuildYourTeam = () => {
                           )}
                         </div>
                       </div>
+
+                      {/* Team Members */}
+                      {teamUsers[team.id] && teamUsers[team.id].length > 0 ? (
+                        <div className="mb-4">
+                          <div className={`flex items-center gap-2 mb-3 ${
+                            theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                          }`}>
+                            <UserPlus size={14} />
+                            <span className="text-xs font-bold">
+                              {teamUsers[team.id].length} Member{teamUsers[team.id].length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {teamUsers[team.id].slice(0, 5).map((user) => (
+                              <div
+                                key={user.id}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                                  theme === 'dark'
+                                    ? 'bg-slate-800/50 border border-slate-700/50'
+                                    : 'bg-slate-50 border border-slate-200'
+                                }`}
+                              >
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                                  theme === 'dark'
+                                    ? 'bg-purple-500/20 text-purple-300'
+                                    : 'bg-purple-100 text-purple-700'
+                                }`}>
+                                  {user.full_name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || '?'}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className={`text-sm font-semibold truncate ${
+                                    theme === 'dark' ? 'text-white' : 'text-slate-900'
+                                  }`}>
+                                    {user.full_name || user.email}
+                                  </p>
+                                  {user.job_title && (
+                                    <p className={`text-xs truncate ${
+                                      theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+                                    }`}>
+                                      {user.job_title}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {teamUsers[team.id].length > 5 && (
+                              <p className={`text-xs text-center pt-1 ${
+                                theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                              }`}>
+                                +{teamUsers[team.id].length - 5} more
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={`mb-4 px-3 py-2 rounded-lg text-center ${
+                          theme === 'dark'
+                            ? 'bg-slate-800/30 border border-slate-700/30'
+                            : 'bg-slate-50 border border-slate-200'
+                        }`}>
+                          <p className={`text-xs ${
+                            theme === 'dark' ? 'text-slate-500' : 'text-slate-400'
+                          }`}>
+                            No members assigned
+                          </p>
+                        </div>
+                      )}
 
                       <div className="flex items-center gap-2 pt-4 border-t border-slate-700/50">
                         <button

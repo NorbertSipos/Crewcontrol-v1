@@ -38,6 +38,9 @@ const ContactPage = lazy(() => import('./components/ContactPage.jsx'))
 const BlogPage = lazy(() => import('./components/BlogPage.jsx'))
 const IntegrationsPage = lazy(() => import('./components/IntegrationsPage.jsx'))
 const AboutPage = lazy(() => import('./components/AboutPage.jsx'))
+const DeputyAlternative = lazy(() => import('./components/DeputyAlternative.jsx'))
+const ConnecteamComparison = lazy(() => import('./components/ConnecteamComparison.jsx'))
+const ExcelReplacement = lazy(() => import('./components/ExcelReplacement.jsx'))
 
 // Loading fallback component
 const PageLoader = () => (
@@ -82,6 +85,9 @@ function Main() {
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/integrations" element={<IntegrationsPage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/deputy-alternative" element={<DeputyAlternative />} />
+            <Route path="/crewcontrol-vs-connecteam" element={<ConnecteamComparison />} />
+            <Route path="/excel-replacement" element={<ExcelReplacement />} />
           </Route>
 
           {/* --- 2. CSOPORT: AUTH PAGES (Navbar + Footer NINCS) --- */}

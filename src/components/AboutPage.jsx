@@ -36,7 +36,12 @@ const AboutPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       {/* Animated Grid Background */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div 

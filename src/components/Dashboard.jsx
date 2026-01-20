@@ -2,10 +2,10 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Calendar, Users, BarChart3, Settings, 
-  Search, Bell, Plus, Clock, AlertTriangle, 
+  Search, Bell, Plus, Clock, AlertTriangle, AlertCircle,
   ChevronRight, ChevronLeft, MoreVertical, CheckCircle2, Zap, Filter,
   Moon, Sun, TrendingUp, TrendingDown, Activity, FileText, Timer, UserCheck, CalendarCheck, Mail,
-  Edit2, Trash2, MapPin, X, CalendarDays, Grid3x3, LogOut
+  Edit2, Trash2, MapPin, X, CalendarDays, Grid3x3, LogOut, Eraser
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -13,6 +13,123 @@ import { useNotifications } from '../contexts/NotificationContext';
 import { supabase } from '../lib/supabase';
 import { createNotification } from '../lib/notificationService';
 import NotificationCenter from './NotificationCenter';
+
+// Template Card Component for the redesigned modal
+const TemplateCard = ({ template, theme, isDefault, onClick }) => {
+  const isEmergency = template.shift_type === 'emergency';
+  const isPaidLeave = template.shift_type === 'paid_leave';
+  const isDayOff = template.shift_type === 'day_off';
+  const isFullDay = (isEmergency || isPaidLeave || isDayOff) && 
+                    template.start_time === '00:00:00' && template.end_time === '23:59:59';
+  
+  // Get icon for default templates
+  const getIcon = () => {
+    if (isEmergency) return <AlertCircle size={16} />;
+    if (isPaidLeave) return <FileText size={16} />;
+    if (isDayOff) return <CalendarDays size={16} />;
+    return <Clock size={16} />;
+  };
+  
+  // Format time display
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '';
+    const [hours, minutes] = timeStr.split(':');
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${h12}:${minutes} ${ampm}`;
+  };
+  
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        group relative p-3 rounded-xl border-2 transition-all duration-200
+        hover:scale-105 hover:shadow-lg active:scale-95
+        ${isDefault
+          ? theme === 'dark'
+            ? 'bg-slate-900/50 border-slate-700/50 hover:border-slate-600'
+            : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+          : theme === 'dark'
+            ? 'bg-slate-800/50 border-slate-700/30 hover:border-purple-500/50'
+            : 'bg-white border-slate-200 hover:border-purple-300'
+        }
+      `}
+      style={!isDefault ? { borderLeftColor: template.color || '#6366f1', borderLeftWidth: '4px' } : {}}
+    >
+      {/* Color indicator bar for user templates */}
+      {!isDefault && (
+        <div 
+          className="absolute top-0 left-0 right-0 h-1 rounded-t-xl"
+          style={{ backgroundColor: template.color || '#6366f1' }}
+        />
+      )}
+      
+      <div className="flex flex-col items-center text-center gap-1.5">
+        {/* Icon or color circle */}
+        <div
+          className={`
+            w-10 h-10 rounded-lg flex items-center justify-center transition-all
+            group-hover:scale-110
+            ${isDefault
+              ? isEmergency
+                ? 'bg-red-500/20 text-red-400'
+                : isPaidLeave
+                ? 'bg-emerald-500/20 text-emerald-400'
+                : 'bg-slate-500/20 text-slate-400'
+              : 'text-white'
+            }
+          `}
+          style={!isDefault ? { backgroundColor: template.color || '#6366f1' } : {}}
+        >
+          {isDefault ? getIcon() : <Clock size={18} />}
+        </div>
+        
+        {/* Template name */}
+        <div className="w-full">
+          <div className={`
+            text-xs font-bold truncate
+            ${theme === 'dark' ? 'text-white' : 'text-slate-900'}
+          `}>
+            {template.name}
+          </div>
+          
+          {/* Time display */}
+          {!isFullDay && (
+            <div className={`
+              text-[10px] mt-0.5
+              ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}
+            `}>
+              {formatTime(template.start_time)} - {formatTime(template.end_time)}
+            </div>
+          )}
+          
+          {/* Default badge */}
+          {isDefault && (
+            <div className={`
+              text-[9px] mt-1 px-1.5 py-0.5 rounded-full font-bold
+              ${isEmergency
+                ? 'bg-red-500/10 text-red-400'
+                : isPaidLeave
+                ? 'bg-emerald-500/10 text-emerald-400'
+                : 'bg-slate-500/10 text-slate-400'
+              }
+            `}>
+              Default
+            </div>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+};
+
+// Default template colors (for Emergency, Paid Leave, and Day Off)
+const DEFAULT_TEMPLATE_COLORS = {
+  emergency: '#dc2626', // Red
+  paid_leave: '#059669', // Emerald
+  day_off: '#64748b', // Slate/Gray
+};
 
 // Modular Metric Card Component
 const MetricCard = ({ metric, theme, loading }) => {
@@ -109,7 +226,9 @@ const Dashboard = () => {
   const [showShiftModal, setShowShiftModal] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [templateModalContext, setTemplateModalContext] = useState({ day: null, employeeId: null });
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0, visible: false, day: null, employeeId: null });
   const [editingShift, setEditingShift] = useState(null);
+  const [hoveredDay, setHoveredDay] = useState(null); // { date: Date, shifts: [], position: { x, y } }
   const [shiftForm, setShiftForm] = useState({
     employee_id: '',
     location_id: '',
@@ -117,8 +236,17 @@ const Dashboard = () => {
     end_time: '',
     break_duration_minutes: 0,
     status: 'scheduled',
+    shift_type: 'on_shift', // 'on_shift', 'paid_leave', 'emergency'
+    color: '#8b5cf6', // Default purple color
     notes: ''
   });
+  
+  // Default shift types with colors (works on both dark and light themes)
+  const shiftTypes = [
+    { value: 'on_shift', label: 'On Shift', color: '#6366f1', defaultColor: '#6366f1' }, // Indigo - good contrast on both themes
+    { value: 'paid_leave', label: 'Paid Leave', color: '#059669', defaultColor: '#059669' }, // Emerald - good contrast on both themes
+    { value: 'emergency', label: 'Emergency', color: '#dc2626', defaultColor: '#dc2626' }, // Red - good contrast on both themes
+  ];
   const [submitting, setSubmitting] = useState(false);
   const [filters, setFilters] = useState({
     employee: 'all',
@@ -126,12 +254,14 @@ const Dashboard = () => {
     jobTitle: 'all',
     team: 'all'
   });
+  const [showFilters, setShowFilters] = useState(false);
   const [teams, setTeams] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [scheduleTemplates, setScheduleTemplates] = useState([]);
   const [draggedShift, setDraggedShift] = useState(null);
   const [dragOverCell, setDragOverCell] = useState(null);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const prevLocationRef = useRef(location.pathname);
 
   // Modular metrics configuration - connected to real data
@@ -238,7 +368,8 @@ const Dashboard = () => {
         const todayStart = new Date(now.setHours(0, 0, 0, 0));
         const todayEnd = new Date(now.setHours(23, 59, 59, 999));
         const weekStart = new Date(now);
-        weekStart.setDate(now.getDate() - now.getDay()); // Start of week (Sunday)
+        const dayOfWeek = (now.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+        weekStart.setDate(now.getDate() - dayOfWeek); // Start of week (Monday)
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
@@ -367,7 +498,8 @@ const Dashboard = () => {
       let startDate, endDate;
       if (view === 'weekly') {
         const weekStart = new Date(currentDate);
-        weekStart.setDate(currentDate.getDate() - currentDate.getDay()); // Start of week (Sunday)
+        const dayOfWeek = (currentDate.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+        weekStart.setDate(currentDate.getDate() - dayOfWeek); // Start of week (Monday)
         weekStart.setHours(0, 0, 0, 0);
         startDate = weekStart;
 
@@ -431,15 +563,6 @@ const Dashboard = () => {
           );
         }
 
-        // #region agent log
-        const shiftDates = filteredShifts.map(s => ({
-          id: s.id,
-          startTime: s.start_time,
-          dateStrUTC: new Date(s.start_time).toISOString().split('T')[0],
-          dateStrLocal: `${new Date(s.start_time).getFullYear()}-${String(new Date(s.start_time).getMonth()+1).padStart(2,'0')}-${String(new Date(s.start_time).getDate()).padStart(2,'0')}`
-        }));
-        fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:418',message:'Setting shifts state after fetch',data:{shiftCount:filteredShifts.length,dateRangeStart:startDate.toISOString(),dateRangeEnd:endDate.toISOString(),shiftDates},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
 
         console.log('Setting shifts state:', filteredShifts.length, 'shifts');
         setShifts(filteredShifts);
@@ -642,7 +765,11 @@ const Dashboard = () => {
   // Calendar helper functions
   const getWeekDays = () => {
     const weekStart = new Date(currentDate);
-    weekStart.setDate(currentDate.getDate() - currentDate.getDay()); // Start of week (Sunday)
+    // Start of week (Monday) - getDay() returns 0 for Sunday, 1 for Monday, etc.
+    // We want Monday (1) to be day 0, so we adjust: (getDay() + 6) % 7 gives us days since Monday
+    const dayOfWeek = (currentDate.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+    weekStart.setDate(currentDate.getDate() - dayOfWeek);
+    weekStart.setHours(0, 0, 0, 0);
     
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -680,18 +807,30 @@ const Dashboard = () => {
     // Use LOCAL date strings for comparison to avoid timezone issues
     const dateStrLocal = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     const filtered = shifts.filter(shift => {
-      const shiftDate = new Date(shift.start_time);
-      const shiftDateStrLocal = `${shiftDate.getFullYear()}-${String(shiftDate.getMonth()+1).padStart(2,'0')}-${String(shiftDate.getDate()).padStart(2,'0')}`;
+      if (!shift.start_time) return false;
+      // Ensure UTC parsing: if the string doesn't end with Z, append it
+      // Database timestamps are stored in UTC, so we need to parse them as UTC
+      const timeStr = shift.start_time.endsWith('Z') ? shift.start_time : shift.start_time + 'Z';
+      const shiftDate = new Date(timeStr);
+      // Get LOCAL date components (not UTC) to correctly match shifts that start at midnight
+      // This is critical for night shifts (00:00) which convert to previous day in UTC
+      // When we create a Date from ISO string with Z, getFullYear/getMonth/getDate return LOCAL components
+      const shiftYear = shiftDate.getFullYear();
+      const shiftMonth = shiftDate.getMonth();
+      const shiftDay = shiftDate.getDate();
+      const shiftDateStrLocal = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(shiftDay).padStart(2,'0')}`;
       
       // #region agent log
       const matches = shiftDateStrLocal === dateStrLocal;
-      if (shift.id && matches) {
-        fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:640',message:'Shift matched in getShiftsForDate',data:{dateStrLocal,shiftDateStrLocal,shiftId:shift.id,shiftStartTime:shift.start_time,dateISO:date.toISOString(),dateLocal:date.toString(),matches},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // Log night shifts (starting at 00:00) to debug timezone issues
+      const shiftHour = shiftDate.getHours();
+      if (shift.shift_type === 'emergency' || shift.shift_type === 'paid_leave' || shiftHour === 0) {
+        fetch('http://127.0.0.1:7243/ingest/fdda5182-9242-4c03-be38-7b454f53c1a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:688',message:'Filtering shift',data:{shiftId:shift.id,shiftType:shift.shift_type,shiftStartTime:shift.start_time,timeStr,shiftDateStrLocal,dateStrLocal,matches,shiftYear,shiftMonth,shiftDay,shiftHour,shiftsCount:shifts.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
       }
       // #endregion
       
       // Compare using LOCAL dates, not UTC dates
-      return shiftDateStrLocal === dateStrLocal;
+      return matches;
     });
     return filtered;
   };
@@ -723,10 +862,142 @@ const Dashboard = () => {
     setCurrentDate(newDate);
   };
 
+  // Handle template click - create shift from template
+  const handleTemplateClick = async (template) => {
+    const day = popupPosition.day || templateModalContext.day || new Date();
+    const employeeId = popupPosition.employeeId || templateModalContext.employeeId;
+    
+    if (!employeeId) {
+      // If no employee selected, open the form to select one
+      openAddShiftModal(day, null, template);
+      return;
+    }
+    
+    // Automatically create the shift using the template
+    try {
+      setSubmitting(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      if (!accessToken) {
+        alert('Error: No access token');
+        setSubmitting(false);
+        return;
+      }
+
+      // Check if employee already has a shift on this day (limit 1 per day)
+      const targetDayDate = new Date(day);
+      targetDayDate.setHours(0, 0, 0, 0);
+      const targetDateStrLocal = `${targetDayDate.getFullYear()}-${String(targetDayDate.getMonth()+1).padStart(2,'0')}-${String(targetDayDate.getDate()).padStart(2,'0')}`;
+      const existingShift = shifts.find(s => {
+        if (s.employee_id !== employeeId) return false;
+        const timeStr = s.start_time.endsWith('Z') ? s.start_time : s.start_time + 'Z';
+        const shiftDate = new Date(timeStr);
+        const shiftYear = shiftDate.getFullYear();
+        const shiftMonth = shiftDate.getMonth();
+        const shiftDay = shiftDate.getDate();
+        const shiftDateStrLocal = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(shiftDay).padStart(2,'0')}`;
+        return shiftDateStrLocal === targetDateStrLocal;
+      });
+      
+      if (existingShift) {
+        alert(`This employee already has a shift on ${targetDateStrLocal}. Only one shift per employee per day is allowed.`);
+        setSubmitting(false);
+        return;
+      }
+
+      // Parse template times and apply to the selected day
+      const dayYear = day.getFullYear();
+      const dayMonth = day.getMonth();
+      const dayDate = day.getDate();
+      
+      const startTimeParts = template.start_time.split(':');
+      const endTimeParts = template.end_time.split(':');
+      
+      const startHours = parseInt(startTimeParts[0]) || 0;
+      const startMinutes = parseInt(startTimeParts[1]) || 0;
+      const endHours = parseInt(endTimeParts[0]) || 0;
+      const endMinutes = parseInt(endTimeParts[1]) || 0;
+      
+      // For full-day shifts (emergency/paid_leave/day_off with 00:00:00-23:59:59)
+      const isFullDayShift = (template.shift_type === 'emergency' || template.shift_type === 'paid_leave' || template.shift_type === 'day_off') &&
+                            startHours === 0 && startMinutes === 0 && 
+                            endHours === 23 && endMinutes === 59;
+      
+      const start = isFullDayShift 
+        ? new Date(dayYear, dayMonth, dayDate, 12, 0, 0, 0)
+        : new Date(dayYear, dayMonth, dayDate, startHours, startMinutes, 0, 0);
+      
+      const isOvernight = endHours < startHours || (endHours === startHours && endMinutes < startMinutes);
+      
+      const end = isFullDayShift
+        ? new Date(dayYear, dayMonth, dayDate, 23, 59, 59, 999)
+        : new Date(dayYear, dayMonth, dayDate, endHours, endMinutes, 0, 0);
+      if (isOvernight && !isFullDayShift) {
+        end.setDate(end.getDate() + 1);
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${accessToken}`,
+        'Prefer': 'return=representation'
+      };
+
+      const shiftType = template.shift_type || 'on_shift';
+      const shiftColor = template.color || shiftTypes.find(st => st.value === shiftType)?.defaultColor || shiftTypes[0].defaultColor;
+      
+      const shiftData = {
+        organization_id: userProfile.organization_id,
+        employee_id: employeeId,
+        location_id: null,
+        start_time: start.toISOString(),
+        end_time: end.toISOString(),
+        break_duration_minutes: template.break_duration_minutes || 0,
+        status: 'scheduled',
+        shift_type: shiftType,
+        color: shiftColor,
+        notes: template.description || null,
+        created_by: user.id,
+        updated_at: new Date().toISOString()
+      };
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(shiftData)
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Shift creation failed:', errorText);
+        
+        if (errorText.includes('column') && (errorText.includes('shift_type') || errorText.includes('color'))) {
+          throw new Error('Database columns missing. Please run the migration: add_shift_type_and_color_migration.sql in Supabase SQL Editor.');
+        }
+        
+        throw new Error(errorText || 'Failed to create shift');
+      }
+
+      // Refresh shifts to get full data
+      await fetchShifts(accessToken);
+      
+      setSubmitting(false);
+    } catch (error) {
+      console.error('Error creating shift from template:', error);
+      alert('Error creating shift: ' + error.message);
+      setSubmitting(false);
+    }
+  };
+
   const getViewTitle = () => {
     if (view === 'weekly') {
       const weekStart = new Date(currentDate);
-      weekStart.setDate(currentDate.getDate() - currentDate.getDay());
+      const dayOfWeek = (currentDate.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+      weekStart.setDate(currentDate.getDate() - dayOfWeek); // Start of week (Monday)
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
@@ -804,6 +1075,7 @@ const Dashboard = () => {
       endTime = `${year}-${month}-${date}T${endHour}:${endMin}`;
     }
     
+    const defaultShiftType = shiftTypes[0];
     setShiftForm({
       employee_id: employeeId || '',
       location_id: '',
@@ -811,6 +1083,8 @@ const Dashboard = () => {
       end_time: endTime,
       break_duration_minutes: template?.break_duration_minutes || 0,
       status: 'scheduled',
+      shift_type: 'on_shift',
+      color: defaultShiftType.defaultColor,
       notes: ''
     });
     setShowShiftModal(true);
@@ -822,6 +1096,7 @@ const Dashboard = () => {
     const startDate = new Date(shift.start_time);
     const endDate = new Date(shift.end_time);
     
+    const shiftType = shiftTypes.find(st => st.value === (shift.shift_type || 'on_shift')) || shiftTypes[0];
     setShiftForm({
       employee_id: shift.employee_id,
       location_id: shift.location_id || '',
@@ -829,9 +1104,442 @@ const Dashboard = () => {
       end_time: endDate.toISOString().slice(0, 16),
       break_duration_minutes: shift.break_duration_minutes || 0,
       status: shift.status || 'scheduled',
+      shift_type: shift.shift_type || 'on_shift',
+      color: shift.color || shiftType.defaultColor,
       notes: shift.notes || ''
     });
     setShowShiftModal(true);
+  };
+
+  // Auto-fill calendar with shifts
+  // Clear Schedule function
+  const handleClearSchedule = async () => {
+    if (!isManager) {
+      alert('Only managers can clear schedules.');
+      return;
+    }
+
+    const period = view === 'weekly' ? 'week' : 'month';
+    if (!confirm(`This will delete ALL shifts for ALL employees in this ${period}. This action cannot be undone. Continue?`)) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      if (!accessToken) {
+        alert('Error: No access token');
+        setSubmitting(false);
+        return;
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${accessToken}`,
+        'Prefer': 'return=representation'
+      };
+
+      // Get date range
+      let startDate, endDate;
+      if (view === 'weekly') {
+        startDate = new Date(currentDate);
+        const dayOfWeek = (currentDate.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+        startDate.setDate(currentDate.getDate() - dayOfWeek); // Start of week (Monday)
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+      } else {
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      // Delete all shifts in the date range for the organization
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts?organization_id=eq.${userProfile.organization_id}&start_time=gte.${startDate.toISOString()}&start_time=lte.${endDate.toISOString()}`,
+        {
+          method: 'DELETE',
+          headers
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Failed to clear schedule');
+      }
+
+      // Refresh shifts
+      await fetchShifts(accessToken);
+      
+      setToastMessage('Schedule cleared successfully');
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+      setSubmitting(false);
+    } catch (error) {
+      console.error('Error clearing schedule:', error);
+      alert('Error clearing schedule: ' + error.message);
+      setSubmitting(false);
+    }
+  };
+
+  const handleAutoFill = async () => {
+    if (!isManager || !employees.length) {
+      alert('No employees available to schedule.');
+      return;
+    }
+
+    // Get days off per week setting from organization (default to 2)
+    const daysOffPerWeek = organization?.days_off_per_week || 2;
+    
+    if (!confirm(`This will auto-fill the ${view === 'weekly' ? 'week' : 'month'} with shifts for all employees. Each employee will have ${daysOffPerWeek} day${daysOffPerWeek > 1 ? 's' : ''} off per week. Continue?`)) {
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+
+      if (!accessToken) {
+        alert('Error: No access token');
+        setSubmitting(false);
+        return;
+      }
+
+      const headers = {
+        'Content-Type': 'application/json',
+        'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${accessToken}`,
+        'Prefer': 'return=representation'
+      };
+
+      // Get date range
+      let startDate, endDate;
+      if (view === 'weekly') {
+        startDate = new Date(currentDate);
+        const dayOfWeek = (currentDate.getDay() + 6) % 7; // 0 = Monday, 6 = Sunday
+        startDate.setDate(currentDate.getDate() - dayOfWeek); // Start of week (Monday)
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+      } else {
+        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      // Employees are already filtered by the API (is_active=eq.true&role=eq.employee)
+      // So we can use the employees array directly
+      if (!employees || employees.length === 0) {
+        alert('No active employees found. Please add employees first.');
+        setSubmitting(false);
+        return;
+      }
+
+      const createdShifts = [];
+      const errors = [];
+
+      // Track days off per employee to ensure they don't overlap
+      const employeeDaysOff = new Map(); // Map<employeeId, Set<dayStrLocal>>
+      
+      // Get days off per week setting from organization (default to 2)
+      const daysOffPerWeek = organization?.days_off_per_week || 2;
+      const daysOffDistribution = organization?.days_off_distribution || 'random';
+      
+      // Find Day Off template
+      const dayOffTemplate = scheduleTemplates.find(t => t.shift_type === 'day_off');
+      
+      // Filter out default templates (Emergency, Paid Leave) - only use user-created templates
+      const userTemplates = scheduleTemplates.filter(t => 
+        t.shift_type === 'on_shift' && !t.is_default
+      );
+      
+      // Calculate days in range (same for all employees)
+      const daysInRange = [];
+      const currentDay = new Date(startDate);
+      while (currentDay <= endDate) {
+        daysInRange.push(new Date(currentDay));
+        currentDay.setDate(currentDay.getDate() + 1);
+      }
+      
+      // For each employee, create shifts
+      for (let employeeIndex = 0; employeeIndex < employees.length; employeeIndex++) {
+        const employee = employees[employeeIndex];
+        
+        // Initialize days off set for this employee
+        if (!employeeDaysOff.has(employee.id)) {
+          employeeDaysOff.set(employee.id, new Set());
+        }
+        const daysOff = employeeDaysOff.get(employee.id);
+        
+        // Calculate days off for this employee based on distribution setting
+        if (daysOffDistribution === 'weekends') {
+          // Always use weekends (Saturday = 6, Sunday = 0 in getDay())
+          for (const day of daysInRange) {
+            const dayOfWeek = day.getDay(); // 0 = Sunday, 6 = Saturday
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+              const dayYear = day.getFullYear();
+              const dayMonth = day.getMonth();
+              const dayDate = day.getDate();
+              const dayStrLocal = `${dayYear}-${String(dayMonth+1).padStart(2,'0')}-${String(dayDate).padStart(2,'0')}`;
+              daysOff.add(dayStrLocal);
+            }
+          }
+        } else {
+          // Random distribution - distribute evenly across weeks, but stagger by employee index
+          const weeksInRange = Math.ceil(daysInRange.length / 7);
+          
+          // For each week, distribute days off evenly, but offset by employee index to avoid overlap
+          for (let week = 0; week < weeksInRange; week++) {
+            const weekStart = week * 7;
+            const weekEnd = Math.min(weekStart + 7, daysInRange.length);
+            const weekDays = daysInRange.slice(weekStart, weekEnd);
+            
+            if (weekDays.length === 0) continue;
+            
+            // Stagger days off by employee index to avoid all employees having same days off
+            // Employee 0: days 2, 5
+            // Employee 1: days 3, 6
+            // Employee 2: days 4, 0 (Sunday)
+            // etc.
+            const employeeOffset = employeeIndex % weekDays.length;
+            
+            for (let i = 0; i < daysOffPerWeek && i < weekDays.length; i++) {
+              // Calculate index with employee offset to stagger days off
+              const step = weekDays.length / (daysOffPerWeek + 1);
+              let dayIndexInWeek = Math.floor((i + 1) * step) + employeeOffset;
+              
+              // Wrap around if needed
+              if (dayIndexInWeek >= weekDays.length) {
+                dayIndexInWeek = dayIndexInWeek % weekDays.length;
+              }
+              
+              // Check if this day is already taken by another employee
+              let attempts = 0;
+              while (attempts < weekDays.length) {
+                const day = weekDays[dayIndexInWeek];
+                const dayYear = day.getFullYear();
+                const dayMonth = day.getMonth();
+                const dayDate = day.getDate();
+                const dayStrLocal = `${dayYear}-${String(dayMonth+1).padStart(2,'0')}-${String(dayDate).padStart(2,'0')}`;
+                
+                // Check if any other employee already has this day off
+                let dayTaken = false;
+                for (const [otherEmployeeId, otherDaysOff] of employeeDaysOff.entries()) {
+                  if (otherEmployeeId !== employee.id && otherDaysOff.has(dayStrLocal)) {
+                    dayTaken = true;
+                    break;
+                  }
+                }
+                
+                if (!dayTaken) {
+                  daysOff.add(dayStrLocal);
+                  break;
+                }
+                
+                // Try next day
+                dayIndexInWeek = (dayIndexInWeek + 1) % weekDays.length;
+                attempts++;
+              }
+            }
+          }
+        }
+
+        // Create shifts for each day
+        for (const day of daysInRange) {
+          // Use local date string for consistency
+          const dayYear = day.getFullYear();
+          const dayMonth = day.getMonth();
+          const dayDate = day.getDate();
+          const dayStrLocal = `${dayYear}-${String(dayMonth+1).padStart(2,'0')}-${String(dayDate).padStart(2,'0')}`;
+          
+          // Check if shift already exists for this employee on this day
+          const existingShiftForDay = shifts.find(s => {
+            if (s.employee_id !== employee.id) return false;
+            // Ensure UTC parsing for date comparison
+            const timeStr = s.start_time.endsWith('Z') ? s.start_time : s.start_time + 'Z';
+            const shiftDate = new Date(timeStr);
+            const shiftYear = shiftDate.getFullYear();
+            const shiftMonth = shiftDate.getMonth();
+            const shiftDay = shiftDate.getDate();
+            const shiftDateStrLocal = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(shiftDay).padStart(2,'0')}`;
+            return shiftDateStrLocal === dayStrLocal;
+          });
+
+          if (existingShiftForDay) {
+            continue; // Skip if shift already exists
+          }
+
+          // If this is a day off, create Day Off shift
+          if (daysOff.has(dayStrLocal)) {
+            if (dayOffTemplate) {
+              // Create Day Off shift using the template
+              const dayYear = day.getFullYear();
+              const dayMonth = day.getMonth();
+              const dayDate = day.getDate();
+              
+              // For day off (full day), use noon for start and 11:59 PM for end to avoid timezone issues
+              const start = new Date(dayYear, dayMonth, dayDate, 12, 0, 0, 0);
+              const end = new Date(dayYear, dayMonth, dayDate, 23, 59, 59, 999);
+              
+              const dayOffShiftData = {
+                organization_id: userProfile.organization_id,
+                employee_id: employee.id,
+                location_id: null,
+                start_time: start.toISOString(),
+                end_time: end.toISOString(),
+                break_duration_minutes: 0,
+                status: 'scheduled',
+                shift_type: 'day_off',
+                color: dayOffTemplate.color || DEFAULT_TEMPLATE_COLORS.day_off,
+                notes: null,
+                created_by: user.id,
+                updated_at: new Date().toISOString()
+              };
+
+              try {
+                const response = await fetch(
+                  `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
+                  {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(dayOffShiftData)
+                  }
+                );
+
+                if (response.ok) {
+                  const result = await response.json();
+                  const createdShift = Array.isArray(result) ? result[0] : result;
+                  createdShifts.push(createdShift);
+                } else {
+                  const errorText = await response.text();
+                  console.error(`Auto-fill error for ${employee.full_name} Day Off on ${dayStrLocal}:`, errorText);
+                  errors.push(`Failed to create Day Off shift for ${employee.full_name} on ${dayStrLocal}`);
+                }
+              } catch (error) {
+                errors.push(`Error creating Day Off shift for ${employee.full_name} on ${dayStrLocal}: ${error.message}`);
+              }
+            }
+            continue; // Skip creating regular shift for day off
+          }
+
+          // Use on_shift type only (exclude Emergency and Paid Leave from auto-fill)
+          const shiftType = 'on_shift';
+          
+          // Rotate through templates: employee 1 gets template 1, employee 2 gets template 2, etc.
+          // Cycle through all templates before repeating
+          let shiftStart, shiftEnd, color, breakDuration = 30;
+          
+          if (userTemplates.length > 0) {
+            // Calculate which template to use for this employee
+            // Use employee index modulo template count to rotate through templates
+            const templateIndex = employeeIndex % userTemplates.length;
+            const selectedTemplate = userTemplates[templateIndex];
+            color = selectedTemplate.color || shiftTypes[0].defaultColor;
+            breakDuration = selectedTemplate.break_duration_minutes || 30;
+            
+            // Parse template times
+            const startTimeParts = selectedTemplate.start_time.split(':');
+            const endTimeParts = selectedTemplate.end_time.split(':');
+            const startHours = parseInt(startTimeParts[0]) || 9;
+            const startMinutes = parseInt(startTimeParts[1]) || 0;
+            const endHours = parseInt(endTimeParts[0]) || 17;
+            const endMinutes = parseInt(endTimeParts[1]) || 0;
+            
+            shiftStart = new Date(day);
+            shiftStart.setHours(startHours, startMinutes, 0, 0);
+            shiftEnd = new Date(day);
+            shiftEnd.setHours(endHours, endMinutes, 0, 0);
+            
+            // Handle overnight shifts
+            if (shiftEnd <= shiftStart) {
+              shiftEnd.setDate(shiftEnd.getDate() + 1);
+            }
+          } else {
+            // Default shift times (9 AM - 5 PM)
+            color = shiftTypes[0].defaultColor;
+            shiftStart = new Date(day);
+            shiftStart.setHours(9, 0, 0, 0);
+            shiftEnd = new Date(day);
+            shiftEnd.setHours(17, 0, 0, 0);
+          }
+
+          const shiftData = {
+            organization_id: userProfile.organization_id,
+            employee_id: employee.id,
+            location_id: null,
+            start_time: shiftStart.toISOString(),
+            end_time: shiftEnd.toISOString(),
+            break_duration_minutes: breakDuration,
+            status: 'scheduled',
+            shift_type: shiftType,
+            color: color,
+            notes: null,
+            created_by: user.id,
+            updated_at: new Date().toISOString()
+          };
+
+          try {
+            const response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
+              {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(shiftData)
+              }
+            );
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error(`Auto-fill error for ${employee.full_name} on ${dayStrLocal}:`, errorText);
+              
+              // Check if error is due to missing columns
+              if (errorText.includes('column') && (errorText.includes('shift_type') || errorText.includes('color'))) {
+                errors.push(`Database columns missing. Please run the migration: add_shift_type_and_color_migration.sql`);
+                setSubmitting(false);
+                alert('Database migration required! Please run add_shift_type_and_color_migration.sql in Supabase SQL Editor, then try again.');
+                return;
+              }
+              
+              errors.push(`Failed to create shift for ${employee.full_name} on ${dayStrLocal}: ${errorText}`);
+              continue;
+            }
+
+            const result = await response.json();
+            const createdShift = Array.isArray(result) ? result[0] : result;
+            createdShifts.push(createdShift);
+          } catch (error) {
+            errors.push(`Error creating shift for ${employee.full_name} on ${dayStrLocal}: ${error.message}`);
+          }
+        }
+      }
+
+      // Refresh shifts
+      await fetchShifts(accessToken);
+
+      // Show results
+      if (errors.length > 0) {
+        alert(`Auto-fill completed with ${createdShifts.length} shifts created. ${errors.length} errors occurred.`);
+        console.error('Auto-fill errors:', errors);
+      } else {
+        setToastMessage(`Auto-fill completed! ${createdShifts.length} shift${createdShifts.length !== 1 ? 's' : ''} created.`);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      }
+
+      setSubmitting(false);
+    } catch (error) {
+      console.error('Error in auto-fill:', error);
+      alert('Error during auto-fill: ' + error.message);
+      setSubmitting(false);
+    }
   };
 
   // Handle shift submit (add or edit)
@@ -856,14 +1564,19 @@ const Dashboard = () => {
         const existingShift = shifts.find(s => {
           if (s.employee_id !== shiftForm.employee_id) return false;
           if (s.id === editingShift?.id) return false; // Skip the shift being edited
+          // Ensure UTC parsing for date comparison
+          const timeStr = s.start_time.endsWith('Z') ? s.start_time : s.start_time + 'Z';
+          const shiftDate = new Date(timeStr);
           // Use LOCAL date strings for comparison
-          const shiftDate = new Date(s.start_time);
-          const shiftDateStrLocal = `${shiftDate.getFullYear()}-${String(shiftDate.getMonth()+1).padStart(2,'0')}-${String(shiftDate.getDate()).padStart(2,'0')}`;
+          const shiftYear = shiftDate.getFullYear();
+          const shiftMonth = shiftDate.getMonth();
+          const shiftDay = shiftDate.getDate();
+          const shiftDateStrLocal = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(shiftDay).padStart(2,'0')}`;
           return shiftDateStrLocal === startDateStrLocal;
         });
         
         if (existingShift) {
-          alert(`This employee already has a shift on ${startDateStr}. Only one shift per employee per day is allowed.`);
+          alert(`This employee already has a shift on ${startDateStrLocal}. Only one shift per employee per day is allowed.`);
           setSubmitting(false);
           return;
         }
@@ -876,7 +1589,8 @@ const Dashboard = () => {
         'Prefer': 'return=representation'
       };
 
-      const shiftData = {
+      // Build base shift data (without shift_type and color - these may not exist in DB)
+      const shiftDataBase = {
         organization_id: userProfile.organization_id,
         employee_id: shiftForm.employee_id,
         location_id: shiftForm.location_id || null,
@@ -888,31 +1602,167 @@ const Dashboard = () => {
         created_by: editingShift ? undefined : user.id,
         updated_at: new Date().toISOString()
       };
+      
+      // Prepare shift_type and color values (we'll try including them, fallback if needed)
+      const shiftType = shiftForm.shift_type || 'on_shift';
+      const shiftColor = shiftForm.color || shiftTypes.find(st => st.value === shiftType)?.defaultColor || '#8b5cf6';
+
 
       let response;
       if (editingShift) {
-        response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts?id=eq.${editingShift.id}`,
-          {
-            method: 'PATCH',
-            headers,
-            body: JSON.stringify(shiftData)
+        // For editing, try with shift_type and color first, fallback if needed
+        const shiftDataWithType = {
+          ...shiftDataBase,
+          shift_type: shiftType,
+          color: shiftColor
+        };
+        
+        
+        try {
+          response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts?id=eq.${editingShift.id}`,
+            {
+              method: 'PATCH',
+              headers,
+              body: JSON.stringify(shiftDataWithType)
+            }
+          );
+          
+          // If failed due to missing columns, retry without them
+          if (!response.ok) {
+            let errorText = '';
+            try {
+              errorText = await response.text();
+            } catch (e) {
+              errorText = `Status ${response.status}: ${response.statusText}`;
+            }
+            
+            const isColumnError = errorText.includes('column') && 
+              (errorText.includes('shift_type') || errorText.includes('color') || 
+               errorText.includes('does not exist') || errorText.includes('unknown'));
+            
+            if (isColumnError || response.status === 400) {
+              
+              response = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts?id=eq.${editingShift.id}`,
+                {
+                  method: 'PATCH',
+                  headers,
+                  body: JSON.stringify(shiftDataBase) // Without shift_type and color
+                }
+              );
+            }
           }
-        );
+        } catch (fetchError) {
+          throw fetchError;
+        }
       } else {
-        response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
-          {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(shiftData)
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/fdda5182-9242-4c03-be38-7b454f53c1a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1113',message:'POST request to create shift',data:{url:`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,shiftData,headers:Object.keys(headers),hasAccessToken:!!accessToken},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        
+        try {
+          // Try with shift_type and color first
+          const shiftDataWithType = {
+            ...shiftDataBase,
+            shift_type: shiftType,
+            color: shiftColor
+          };
+          
+          
+          try {
+            response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
+              {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(shiftDataWithType)
+              }
+            );
+            
+          } catch (networkError) {
+            // Network error (CORS, connectivity, etc.) - try without new fields
+            
+            response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
+              {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(shiftDataBase) // Retry without shift_type and color
+              }
+            );
+            
           }
-        );
+          
+          // If request failed and it might be due to missing columns, try without them
+          if (!response.ok) {
+            let errorText = '';
+            try {
+              errorText = await response.text();
+            } catch (e) {
+              errorText = `Status ${response.status}: ${response.statusText}`;
+            }
+            
+            
+            // Check if error mentions missing columns or unknown column
+            const isColumnError = errorText.includes('column') && 
+              (errorText.includes('shift_type') || errorText.includes('color') || 
+               errorText.includes('does not exist') || errorText.includes('unknown'));
+            
+            if (isColumnError || response.status === 400) {
+              // Retry without shift_type and color
+              
+              try {
+              response = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
+                {
+                  method: 'POST',
+                  headers,
+                  body: JSON.stringify(shiftDataBase) // Without shift_type and color
+                }
+              );
+                
+                
+                if (response.ok) {
+                  // Success - but warn user about migration
+                  console.warn('Shift created without shift_type/color. Please run add_shift_type_and_color_migration.sql to enable these features.');
+                }
+              } catch (retryError) {
+                throw retryError;
+              }
+            }
+          }
+        } catch (fetchError) {
+          // #region agent log
+          fetch('http://127.0.0.1:7243/ingest/fdda5182-9242-4c03-be38-7b454f53c1a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1157',message:'Fetch error (network/CORS)',data:{error:fetchError.message,errorName:fetchError.name,errorStack:fetchError.stack,url:`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+          // #endregion
+          console.error('Network error creating shift:', fetchError);
+          throw new Error(`Network error: ${fetchError.message}. Please check your internet connection and Supabase configuration.`);
+        }
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText);
+        const statusCode = response.status;
+        const statusText = response.statusText;
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/fdda5182-9242-4c03-be38-7b454f53c1a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1120',message:'Shift save API error response',data:{statusCode,statusText,errorText,shiftData,responseHeaders:Object.fromEntries(response.headers.entries())},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        
+        console.error('Shift save error:', { statusCode, statusText, errorText, shiftData });
+        
+        // Check if error is due to missing columns
+        if (errorText.includes('column') && (errorText.includes('shift_type') || errorText.includes('color'))) {
+          throw new Error('Database columns missing. Please run the migration: add_shift_type_and_color_migration.sql in Supabase SQL Editor.');
+        }
+        
+        // Check for other common errors
+        if (errorText.includes('null value') || errorText.includes('NOT NULL')) {
+          throw new Error('Missing required fields. Please check all required fields are filled.');
+        }
+        
+        throw new Error(errorText || `Failed to save shift (${statusCode}: ${statusText})`);
       }
 
       const shiftResult = await response.json();
@@ -980,9 +1830,6 @@ const Dashboard = () => {
       _originalEndTimeISO: originalShift.end_time
     };
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:910',message:'Drag start - stored displayed times',data:{shiftId:originalShift.id,shiftStartTime:originalShift.start_time,displayedStartTime,displayedEndTime,foundInState:!!shifts.find(s => s.id === shift.id),stateShiftCount:shifts.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
     
     setDraggedShift(shiftCopy);
     e.dataTransfer.effectAllowed = 'move';
@@ -1033,9 +1880,6 @@ const Dashboard = () => {
     e.preventDefault();
     e.stopPropagation();
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:897',message:'handleDrop entry',data:{targetDay:targetDay?.toString(),targetDayISO:targetDay?.toISOString(),targetDayType:typeof targetDay,targetEmployeeId,draggedShiftId:draggedShift?.id,draggedShiftStartTime:draggedShift?.start_time,draggedShiftEndTime:draggedShift?.end_time},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     
     console.log('Drop event triggered', { targetDay, targetEmployeeId, draggedShift });
     
@@ -1070,7 +1914,9 @@ const Dashboard = () => {
 
     // Check if dropping on the same cell (no need to copy)
     // Use LOCAL date strings for comparison
-    const originalShiftDate = new Date(shiftToMove.start_time);
+    // Ensure UTC parsing for the original shift date
+    const originalTimeStr = shiftToMove.start_time.endsWith('Z') ? shiftToMove.start_time : shiftToMove.start_time + 'Z';
+    const originalShiftDate = new Date(originalTimeStr);
     const originalShiftDateStrLocal = `${originalShiftDate.getFullYear()}-${String(originalShiftDate.getMonth()+1).padStart(2,'0')}-${String(originalShiftDate.getDate()).padStart(2,'0')}`;
     const targetDate = new Date(targetDay);
     targetDate.setHours(0, 0, 0, 0);
@@ -1118,9 +1964,6 @@ const Dashboard = () => {
       const [displayedStartHours, displayedStartMinutes] = displayedStartTime.split(':').map(Number);
       const [displayedEndHours, displayedEndMinutes] = displayedEndTime.split(':').map(Number);
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1025',message:'Original times parsed',data:{originalStartISO:originalStart.toISOString(),originalStartLocal:originalStart.toString(),originalStartHours:originalStart.getHours(),originalStartMinutes:originalStart.getMinutes(),displayedStartTime,displayedStartHours,displayedStartMinutes,hasStoredTimes:draggedShift?._displayedStartTime?true:false,storedStartTime:draggedShift?._displayedStartTime,storedEndTime:draggedShift?._displayedEndTime,originalEndISO:originalEnd.toISOString(),originalEndLocal:originalEnd.toString(),originalEndHours:originalEnd.getHours(),originalEndMinutes:originalEnd.getMinutes(),displayedEndTime,displayedEndHours,displayedEndMinutes},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       
       // Calculate duration in milliseconds to preserve exact shift length
       const duration = originalEnd - originalStart;
@@ -1131,9 +1974,6 @@ const Dashboard = () => {
       // Reset to start of day to avoid time issues
       targetDate.setHours(0, 0, 0, 0);
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1020',message:'Target date prepared',data:{targetDayOriginal:targetDay?.toString(),targetDateISO:targetDate.toISOString(),targetDateLocal:targetDate.toString(),targetYear:targetDate.getFullYear(),targetMonth:targetDate.getMonth(),targetDateNum:targetDate.getDate()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       
       const targetYear = targetDate.getFullYear();
       const targetMonth = targetDate.getMonth();
@@ -1147,10 +1987,6 @@ const Dashboard = () => {
       const newEnd = new Date(newStart.getTime() + duration);
       
       // #region agent log
-      const newDisplayedStartTime = formatTime(newStart.toISOString());
-      const newDisplayedEndTime = formatTime(newEnd.toISOString());
-      fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1035',message:'New times calculated',data:{newStartISO:newStart.toISOString(),newStartLocal:newStart.toString(),newStartHours:newStart.getHours(),newStartMinutes:newStart.getMinutes(),newEndISO:newEnd.toISOString(),newEndLocal:newEnd.toString(),newEndHours:newEnd.getHours(),newEndMinutes:newEnd.getMinutes(),durationMinutes:duration/(1000*60),displayedStartTime,newDisplayedStartTime,displayedEndTime,newDisplayedEndTime,timesMatch:displayedStartTime===newDisplayedStartTime&&displayedEndTime===newDisplayedEndTime},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       
       // Verify times match (for debugging)
       const newStartLocalHours = newStart.getHours();
@@ -1198,20 +2034,24 @@ const Dashboard = () => {
       // Use LOCAL date strings for comparison to avoid timezone issues
       const targetDateStrLocal = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1040',message:'Date string comparison',data:{targetDateStrLocal,targetDayISO:targetDay.toISOString(),newStartDateStr:newStart.toISOString().split('T')[0],newStartDateStrLocal:`${newStart.getFullYear()}-${String(newStart.getMonth()+1).padStart(2,'0')}-${String(newStart.getDate()).padStart(2,'0')}`},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
-      
       const existingShift = shifts.find(s => {
         if (s.employee_id !== targetEmployeeId) return false;
+        // Exclude the shift being moved from the check
+        if (s.id === shiftToMove.id) return false;
+        // Ensure UTC parsing for date comparison
+        const timeStr = s.start_time.endsWith('Z') ? s.start_time : s.start_time + 'Z';
+        const shiftDate = new Date(timeStr);
         // Compare using LOCAL dates, not UTC dates
-        const shiftDate = new Date(s.start_time);
-        const shiftDateStrLocal = `${shiftDate.getFullYear()}-${String(shiftDate.getMonth()+1).padStart(2,'0')}-${String(shiftDate.getDate()).padStart(2,'0')}`;
+        const shiftYear = shiftDate.getFullYear();
+        const shiftMonth = shiftDate.getMonth();
+        const shiftDay = shiftDate.getDate();
+        const shiftDateStrLocal = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(shiftDay).padStart(2,'0')}`;
+        
         return shiftDateStrLocal === targetDateStrLocal;
       });
       
       if (existingShift) {
-        alert(`This employee already has a shift on ${targetDateStr}. Only one shift per employee per day is allowed.`);
+        alert(`This employee already has a shift on ${targetDateStrLocal}. Only one shift per employee per day is allowed.`);
         setDraggedShift(null);
         return;
       }
@@ -1225,6 +2065,8 @@ const Dashboard = () => {
         end_time: newEnd.toISOString(),
         break_duration_minutes: shiftToMove.break_duration_minutes || 0,
         status: shiftToMove.status || 'scheduled',
+        shift_type: shiftToMove.shift_type || 'on_shift',
+        color: shiftToMove.color || shiftTypes.find(st => st.value === (shiftToMove.shift_type || 'on_shift'))?.defaultColor || '#8b5cf6',
         notes: shiftToMove.notes || null,
         created_by: user.id,
         updated_at: new Date().toISOString()
@@ -1249,7 +2091,13 @@ const Dashboard = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Shift copy failed:', errorText);
-        throw new Error(errorText);
+        
+        // Check if error is due to missing columns
+        if (errorText.includes('column') && (errorText.includes('shift_type') || errorText.includes('color'))) {
+          throw new Error('Database columns missing. Please run the migration: add_shift_type_and_color_migration.sql in Supabase SQL Editor.');
+        }
+        
+        throw new Error(errorText || 'Failed to move shift');
       }
 
       const createdShiftData = await response.json();
@@ -1280,10 +2128,6 @@ const Dashboard = () => {
         }
       }
       
-      // #region agent log
-      const newShiftDateLocal = newShift?.start_time ? `${new Date(newShift.start_time).getFullYear()}-${String(new Date(newShift.start_time).getMonth()+1).padStart(2,'0')}-${String(new Date(newShift.start_time).getDate()).padStart(2,'0')}` : null;
-      fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1115',message:'Shift created from API',data:{newShiftId:newShift?.id,newShiftStartTime:newShift?.start_time,newShiftStartDateStr:newShift?.start_time?new Date(newShift.start_time).toISOString().split('T')[0]:null,newShiftStartDateStrLocal:newShiftDateLocal,targetDateStrLocal,employeeId:newShift?.employee_id,dateMatch:newShiftDateLocal===targetDateStrLocal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
 
       // Immediately add the new shift to state
       if (newShift) {
@@ -1307,10 +2151,6 @@ const Dashboard = () => {
             new Date(a.start_time) - new Date(b.start_time)
           );
           
-          // #region agent log
-          const enrichedShiftDateLocal = `${new Date(enrichedShift.start_time).getFullYear()}-${String(new Date(enrichedShift.start_time).getMonth()+1).padStart(2,'0')}-${String(new Date(enrichedShift.start_time).getDate()).padStart(2,'0')}`;
-          fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1136',message:'State updated with new shift',data:{newShiftId:enrichedShift.id,newShiftStartTime:enrichedShift.start_time,newShiftStartDateStr:new Date(enrichedShift.start_time).toISOString().split('T')[0],newShiftStartDateStrLocal:enrichedShiftDateLocal,targetDateStrLocal,employeeId:enrichedShift.employee_id,totalShifts:updated.length,dateMatch:enrichedShiftDateLocal===targetDateStrLocal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-          // #endregion
           
           return updated;
         });
@@ -1366,6 +2206,7 @@ const Dashboard = () => {
       await fetchShifts(accessToken);
       
       // Show success toast
+      setToastMessage('Shift deleted successfully');
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);
@@ -1855,107 +2696,217 @@ const Dashboard = () => {
                     }`} />
                   </button>
                 </div>
+
+                {/* Action Buttons */}
+                {isManager && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleAutoFill}
+                      disabled={submitting}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+                        hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
+                        bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white
+                      `}
+                      title={`Auto-fill ${view === 'weekly' ? 'week' : 'month'} with shifts (2 days off per week per employee)`}
+                    >
+                      <Zap size={16} />
+                      <span className="hidden sm:inline">Auto-Fill</span>
+                    </button>
+                    <button
+                      onClick={handleClearSchedule}
+                      disabled={submitting}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+                        hover:scale-105 active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed
+                        bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white
+                      `}
+                      title={`Clear all shifts for this ${view === 'weekly' ? 'week' : 'month'}`}
+                    >
+                      <Eraser size={16} />
+                      <span className="hidden sm:inline">Clear</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Filters */}
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                {/* Search */}
-                <div className={`
-                  flex-1 sm:flex-none flex items-center gap-2 px-3 py-2 rounded-xl min-w-[200px]
-                  ${theme === 'dark' ? 'bg-slate-800/50' : 'bg-slate-100'}
-                `}>
-                  <Search size={16} className={theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} />
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+              {/* Filters - Redesigned */}
+              <div className="mt-4">
+                {/* Filter Toggle Button */}
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
                     className={`
-                      flex-1 bg-transparent border-none outline-none text-xs
-                      ${theme === 'dark' ? 'text-white placeholder:text-slate-500' : 'text-slate-900 placeholder:text-slate-400'}
+                      flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+                      ${theme === 'dark'
+                        ? 'bg-slate-800/50 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                      }
                     `}
-                  />
+                  >
+                    <Filter size={16} />
+                    <span>Filters</span>
+                    {showFilters ? <ChevronRight size={16} className="rotate-90" /> : <ChevronRight size={16} />}
+                  </button>
+                  
+                  {/* Search - Always visible */}
+                  <div className={`
+                    flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs
+                    ${theme === 'dark' ? 'bg-slate-800/50' : 'bg-slate-100'}
+                  `}>
+                    <Search size={16} className={theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} />
+                    <input
+                      type="text"
+                      placeholder="Search employees..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className={`
+                        flex-1 bg-transparent border-none outline-none text-xs
+                        ${theme === 'dark' ? 'text-white placeholder:text-slate-500' : 'text-slate-900 placeholder:text-slate-400'}
+                      `}
+                    />
+                  </div>
                 </div>
-                
-                {/* Employee Filter */}
-                <select 
-                  value={filters.employee}
-                  onChange={(e) => setFilters({ ...filters, employee: e.target.value })}
-                  className={`
-                    flex-1 sm:flex-none rounded-xl px-3 sm:px-4 py-2 text-xs font-bold outline-none cursor-pointer transition-all min-w-0
+
+                {/* Collapsible Filter Panel */}
+                {showFilters && (
+                  <div className={`
+                    grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 rounded-xl border transition-all
                     ${theme === 'dark'
-                      ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                      ? 'bg-slate-800/30 border-slate-700'
+                      : 'bg-slate-50 border-slate-200'
                     }
-                  `}
-                >
-                  <option value="all">All Employees</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.full_name}</option>
-                  ))}
-                </select>
-                
-                {/* Location Filter (if locations exist) */}
-                {locations.length > 0 && (
-                  <select
-                    value={filters.location}
-                    onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-                    className={`
-                      flex-1 sm:flex-none rounded-xl px-3 sm:px-4 py-2 text-xs font-bold outline-none cursor-pointer transition-all min-w-0
-                      ${theme === 'dark'
-                        ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'
-                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }
-                    `}
-                  >
-                    <option value="all">All Locations</option>
-                    {locations.map(loc => (
-                      <option key={loc.id} value={loc.id}>{loc.name}</option>
-                    ))}
-                  </select>
-                )}
-                
-                {/* Job Title Filter */}
-                {jobTitles.length > 0 && (
-                  <select
-                    value={filters.jobTitle}
-                    onChange={(e) => setFilters({ ...filters, jobTitle: e.target.value })}
-                    className={`
-                      flex-1 sm:flex-none rounded-xl px-3 sm:px-4 py-2 text-xs font-bold outline-none cursor-pointer transition-all min-w-0
-                      ${theme === 'dark'
-                        ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'
-                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }
-                    `}
-                  >
-                    <option value="all">All Job Titles</option>
-                    {jobTitles.map(title => (
-                      <option key={title} value={title}>{title}</option>
-                    ))}
-                  </select>
-                )}
-                
-                {/* Team Filter (only show for managers with more than 1 team) */}
-                {userProfile?.role === 'manager' && teams.length > 1 && (
-                  <select
-                    value={filters.team}
-                    onChange={(e) => {
-                      // Reset employee filter when team changes to avoid showing invalid selections
-                      setFilters({ ...filters, team: e.target.value, employee: 'all' });
-                    }}
-                    className={`
-                      flex-1 sm:flex-none rounded-xl px-3 sm:px-4 py-2 text-xs font-bold outline-none cursor-pointer transition-all min-w-0
-                      ${theme === 'dark'
-                        ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700'
-                        : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }
-                    `}
-                  >
-                    <option value="all">All Teams</option>
-                    {teams.map(team => (
-                      <option key={team.id} value={team.id}>{team.name}</option>
-                    ))}
-                  </select>
+                  `}>
+                    {/* Employee Filter */}
+                    <div>
+                      <label className={`
+                        block text-xs font-bold mb-2
+                        ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                      `}>
+                        Employee
+                      </label>
+                      <select 
+                        value={filters.employee}
+                        onChange={(e) => setFilters({ ...filters, employee: e.target.value })}
+                        className={`
+                          w-full rounded-lg px-3 py-2 text-xs font-semibold outline-none cursor-pointer transition-all
+                          ${theme === 'dark'
+                            ? 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600'
+                            : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                          }
+                        `}
+                      >
+                        <option value="all">All Employees</option>
+                        {employees.map(emp => (
+                          <option key={emp.id} value={emp.id}>{emp.full_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Location Filter */}
+                    {locations.length > 0 && (
+                      <div>
+                        <label className={`
+                          block text-xs font-bold mb-2
+                          ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                        `}>
+                          Location
+                        </label>
+                        <select
+                          value={filters.location}
+                          onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                          className={`
+                            w-full rounded-lg px-3 py-2 text-xs font-semibold outline-none cursor-pointer transition-all
+                            ${theme === 'dark'
+                              ? 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600'
+                              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                            }
+                          `}
+                        >
+                          <option value="all">All Locations</option>
+                          {locations.map(loc => (
+                            <option key={loc.id} value={loc.id}>{loc.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    
+                    {/* Job Title Filter */}
+                    {jobTitles.length > 0 && (
+                      <div>
+                        <label className={`
+                          block text-xs font-bold mb-2
+                          ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                        `}>
+                          Job Title
+                        </label>
+                        <select
+                          value={filters.jobTitle}
+                          onChange={(e) => setFilters({ ...filters, jobTitle: e.target.value })}
+                          className={`
+                            w-full rounded-lg px-3 py-2 text-xs font-semibold outline-none cursor-pointer transition-all
+                            ${theme === 'dark'
+                              ? 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600'
+                              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                            }
+                          `}
+                        >
+                          <option value="all">All Job Titles</option>
+                          {jobTitles.map(title => (
+                            <option key={title} value={title}>{title}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    
+                    {/* Team Filter */}
+                    {userProfile?.role === 'manager' && teams.length > 1 && (
+                      <div>
+                        <label className={`
+                          block text-xs font-bold mb-2
+                          ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                        `}>
+                          Team
+                        </label>
+                        <select
+                          value={filters.team}
+                          onChange={(e) => {
+                            setFilters({ ...filters, team: e.target.value, employee: 'all' });
+                          }}
+                          className={`
+                            w-full rounded-lg px-3 py-2 text-xs font-semibold outline-none cursor-pointer transition-all
+                            ${theme === 'dark'
+                              ? 'bg-slate-700 border border-slate-600 text-slate-300 hover:bg-slate-600'
+                              : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
+                            }
+                          `}
+                        >
+                          <option value="all">All Teams</option>
+                          {teams.map(team => (
+                            <option key={team.id} value={team.id}>{team.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Clear Filters Button */}
+                    {(filters.employee !== 'all' || filters.location !== 'all' || filters.jobTitle !== 'all' || filters.team !== 'all') && (
+                      <div className="sm:col-span-2 lg:col-span-4 flex justify-end">
+                        <button
+                          onClick={() => setFilters({ employee: 'all', location: 'all', jobTitle: 'all', team: 'all' })}
+                          className={`
+                            px-4 py-2 rounded-lg text-xs font-bold transition-all
+                            ${theme === 'dark'
+                              ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                              : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                            }
+                          `}
+                        >
+                          Clear All Filters
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -2030,17 +2981,25 @@ const Dashboard = () => {
                                   const dayStrLocal = `${day.getFullYear()}-${String(day.getMonth()+1).padStart(2,'0')}-${String(day.getDate()).padStart(2,'0')}`;
                                   const dayShifts = employeeShifts.filter(shift => {
                                     if (!shift.start_time) return false;
-                                    const shiftDate = new Date(shift.start_time);
-                                    // Get local date string to avoid timezone issues
-                                    const shiftDateStrLocal = `${shiftDate.getFullYear()}-${String(shiftDate.getMonth()+1).padStart(2,'0')}-${String(shiftDate.getDate()).padStart(2,'0')}`;
+                                    // Ensure UTC parsing: if the string doesn't end with Z, append it
+                                    // Database timestamps are stored in UTC, so we need to parse them as UTC
+                                    const timeStr = shift.start_time.endsWith('Z') ? shift.start_time : shift.start_time + 'Z';
+                                    const shiftDate = new Date(timeStr);
+                                    // Get LOCAL date components (not UTC) to correctly match shifts that start at midnight
+                                    // This is critical for night shifts (00:00) which convert to previous day in UTC
+                                    const shiftYear = shiftDate.getFullYear();
+                                    const shiftMonth = shiftDate.getMonth();
+                                    const shiftDay = shiftDate.getDate();
+                                    const shiftDateStrLocal = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(shiftDay).padStart(2,'0')}`;
                                     
                                     // #region agent log
-                                    if (shift.id && shiftDateStrLocal === dayStrLocal) {
-                                      fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1669',message:'Shift matched for rendering',data:{shiftId:shift.id,shiftStartTime:shift.start_time,dayStrLocal,shiftDateStrLocal,employeeId:employee.id,dayOfWeek:day.getDay(),dayDate:day.getDate()},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+                                    const matches = shiftDateStrLocal === dayStrLocal;
+                                    if (shift.start_time && (new Date(timeStr).getHours() === 0 || shift.shift_type === 'on_shift')) {
+                                      fetch('http://127.0.0.1:7243/ingest/fdda5182-9242-4c03-be38-7b454f53c1a1',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:2370',message:'Weekly view filtering',data:{shiftId:shift.id,shiftType:shift.shift_type,shiftStartTime:shift.start_time,timeStr,shiftDateStrLocal,dayStrLocal,matches,shiftYear,shiftMonth,shiftDay,employeeId:employee.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
                                     }
                                     // #endregion
                                     
-                                    return shiftDateStrLocal === dayStrLocal;
+                                    return matches;
                                   });
                                   
                                   const isDragOver = dragOverCell?.day?.toISOString().split('T')[0] === day.toISOString().split('T')[0] && dragOverCell?.employeeId === employee.id;
@@ -2066,11 +3025,6 @@ const Dashboard = () => {
                                         // Ensure we're using the shift from the current state, not a stale reference
                                         const currentShift = shifts.find(s => s.id === shift.id) || shift;
                                         
-                                        // #region agent log
-                                        if (currentShift.id && dayStrLocal === `${new Date(currentShift.start_time).getFullYear()}-${String(new Date(currentShift.start_time).getMonth()+1).padStart(2,'0')}-${String(new Date(currentShift.start_time).getDate()).padStart(2,'0')}`) {
-                                          fetch('http://127.0.0.1:7242/ingest/e743be5c-e294-4c2c-a895-e039bdbe26fc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.jsx:1767',message:'Shift being rendered for drag',data:{shiftId:currentShift.id,shiftStartTime:currentShift.start_time,displayedStartTime:formatTime(currentShift.start_time),displayedEndTime:formatTime(currentShift.end_time),dayStrLocal,employeeId:employee.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-                                        }
-                                        // #endregion
                                         
                                         return (
                                         <div
@@ -2089,12 +3043,26 @@ const Dashboard = () => {
                                           }}
                                           className={`
                                             mb-2 p-2 rounded-lg text-xs transition-all group relative
-                                            ${theme === 'dark'
-                                              ? 'bg-purple-600/20 border border-purple-500/30 hover:bg-purple-600/30'
-                                              : 'bg-purple-50 border border-purple-200 hover:bg-purple-100'
-                                            }
                                             ${isManager ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
                                           `}
+                                          style={{
+                                            backgroundColor: currentShift.color ? `${currentShift.color}20` : (theme === 'dark' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)'),
+                                            borderColor: currentShift.color ? `${currentShift.color}40` : (theme === 'dark' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.2)'),
+                                            borderWidth: '1px',
+                                            borderStyle: 'solid'
+                                          }}
+                                          onMouseEnter={(e) => {
+                                            if (currentShift.color) {
+                                              e.currentTarget.style.backgroundColor = `${currentShift.color}30`;
+                                              e.currentTarget.style.borderColor = `${currentShift.color}60`;
+                                            }
+                                          }}
+                                          onMouseLeave={(e) => {
+                                            if (currentShift.color) {
+                                              e.currentTarget.style.backgroundColor = `${currentShift.color}20`;
+                                              e.currentTarget.style.borderColor = `${currentShift.color}40`;
+                                            }
+                                          }}
                                           onClick={(e) => {
                                             // Only open edit modal if not dragging
                                             if (isManager && !draggedShift) {
@@ -2103,9 +3071,26 @@ const Dashboard = () => {
                                           }}
                                         >
                                           <div className="flex items-center justify-between mb-1">
-                                            <div className="font-bold text-purple-400">
-                                              {formatTime(currentShift.start_time)} - {formatTime(currentShift.end_time)}
-                                            </div>
+                                            {(currentShift.shift_type !== 'emergency' && currentShift.shift_type !== 'paid_leave' && currentShift.shift_type !== 'day_off') ? (
+                                              <div 
+                                                className="font-bold"
+                                                style={{ color: currentShift.color || (theme === 'dark' ? '#a78bfa' : '#7c3aed') }}
+                                              >
+                                                {formatTime(currentShift.start_time)} - {formatTime(currentShift.end_time)}
+                                              </div>
+                                            ) : (
+                                              <div 
+                                                className={`font-bold uppercase tracking-wide text-xs ${
+                                                  currentShift.shift_type === 'emergency'
+                                                    ? theme === 'dark' ? 'text-red-300' : 'text-red-600'
+                                                    : currentShift.shift_type === 'paid_leave'
+                                                    ? theme === 'dark' ? 'text-emerald-300' : 'text-emerald-600'
+                                                    : theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+                                                }`}
+                                              >
+                                                {currentShift.shift_type === 'emergency' ? 'Emergency' : currentShift.shift_type === 'paid_leave' ? 'Paid Leave' : 'Day Off'}
+                                              </div>
+                                            )}
                                             {isManager && (
                                               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                                                 <button
@@ -2164,13 +3149,14 @@ const Dashboard = () => {
                                             type="button"
                                             onClick={(e) => {
                                               e.stopPropagation();
-                                              // Show template modal if templates exist, otherwise open shift modal
-                                              if (scheduleTemplates && scheduleTemplates.length > 0) {
-                                                setTemplateModalContext({ day, employeeId: employee.id });
-                                                setShowTemplateModal(true);
-                                              } else {
-                                                openAddShiftModal(day, employee.id);
-                                              }
+                                              const rect = e.currentTarget.getBoundingClientRect();
+                                              setPopupPosition({
+                                                x: rect.left + rect.width / 2,
+                                                y: rect.top + rect.height / 2,
+                                                visible: true,
+                                                day,
+                                                employeeId: employee.id
+                                              });
                                             }}
                                             onMouseDown={(e) => {
                                               // Prevent drag from starting when clicking the button
@@ -2237,6 +3223,22 @@ const Dashboard = () => {
                     return (
                       <div
                         key={idx}
+                        onMouseEnter={(e) => {
+                          if (dayShifts.length > 3 && isCurrentMonth) {
+                            const cellRect = e.currentTarget.getBoundingClientRect();
+                            setHoveredDay({
+                              date: day,
+                              shifts: dayShifts,
+                              position: {
+                                x: cellRect.left + cellRect.width / 2,
+                                y: cellRect.bottom
+                              }
+                            });
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredDay(null);
+                        }}
                         className={`
                           relative min-h-[120px] sm:min-h-[140px] p-2 sm:p-3 rounded-xl transition-all duration-200
                           ${!isCurrentMonth 
@@ -2328,8 +3330,8 @@ const Dashboard = () => {
                         </div>
 
                         {/* Shifts List */}
-                        <div className="space-y-1.5 sm:space-y-2">
-                          {dayShifts.slice(0, isCurrentMonth ? 4 : 2).map((shift, shiftIdx) => (
+                        <div className="space-y-1.5 sm:space-y-2 relative">
+                          {dayShifts.slice(0, isCurrentMonth ? 3 : 2).map((shift, shiftIdx) => (
                             <div
                               key={shift.id}
                               draggable={isManager}
@@ -2345,12 +3347,28 @@ const Dashboard = () => {
                               }}
                               className={`
                                 group relative overflow-hidden rounded-lg p-2 sm:p-2.5 transition-all duration-200
-                                ${theme === 'dark'
-                                  ? 'bg-gradient-to-r from-purple-600/20 via-purple-500/15 to-indigo-600/20 border border-purple-500/30 hover:from-purple-600/30 hover:via-purple-500/25 hover:to-indigo-600/30 hover:border-purple-400/50 hover:shadow-lg hover:shadow-purple-500/20'
-                                  : 'bg-gradient-to-r from-purple-50 via-indigo-50 to-purple-50 border border-purple-200 hover:from-purple-100 hover:via-indigo-100 hover:to-purple-100 hover:border-purple-300 hover:shadow-md'
-                                }
                                 ${isManager ? 'cursor-grab active:cursor-grabbing hover:scale-[1.02]' : 'cursor-pointer'}
                               `}
+                              style={{
+                                backgroundColor: shift.color ? `${shift.color}15` : (theme === 'dark' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)'),
+                                borderColor: shift.color ? `${shift.color}50` : (theme === 'dark' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(139, 92, 246, 0.2)'),
+                                borderWidth: '1px',
+                                borderStyle: 'solid'
+                              }}
+                              onMouseEnter={(e) => {
+                                if (shift.color) {
+                                  e.currentTarget.style.backgroundColor = `${shift.color}25`;
+                                  e.currentTarget.style.borderColor = `${shift.color}70`;
+                                  e.currentTarget.style.boxShadow = `0 4px 12px ${shift.color}30`;
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (shift.color) {
+                                  e.currentTarget.style.backgroundColor = `${shift.color}15`;
+                                  e.currentTarget.style.borderColor = `${shift.color}50`;
+                                  e.currentTarget.style.boxShadow = 'none';
+                                }
+                              }}
                               onClick={(e) => {
                                 if (isManager && !draggedShift) {
                                   openEditShiftModal(shift);
@@ -2363,11 +3381,48 @@ const Dashboard = () => {
                               {/* Content */}
                               <div className="relative">
                                 <div className="flex items-center justify-between mb-1">
-                                  <div className={`
-                                    text-xs sm:text-sm font-bold truncate flex-1
-                                    ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}
-                                  `}>
-                                    {shift.employee?.full_name || 'Unknown'}
+                                  <div className="flex-1 min-w-0">
+                                    <div 
+                                      className="text-xs sm:text-sm font-bold truncate"
+                                      style={{ color: shift.color || (theme === 'dark' ? '#c4b5fd' : '#6d28d9') }}
+                                    >
+                                      {shift.employee?.full_name || 'Unknown'}
+                                    </div>
+                                    {/* Shift Type Badge for Special Shifts */}
+                                    {(shift.shift_type === 'emergency' || shift.shift_type === 'paid_leave' || shift.shift_type === 'day_off') && (
+                                      <div className={`
+                                        inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider
+                                        ${shift.shift_type === 'emergency'
+                                          ? theme === 'dark'
+                                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                            : 'bg-red-50 text-red-600 border border-red-200'
+                                          : shift.shift_type === 'paid_leave'
+                                          ? theme === 'dark'
+                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                            : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                          : theme === 'dark'
+                                            ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                                            : 'bg-slate-100 text-slate-600 border border-slate-300'
+                                        }
+                                      `}>
+                                        {shift.shift_type === 'emergency' ? (
+                                          <>
+                                            <AlertCircle size={8} />
+                                            <span>Emergency</span>
+                                          </>
+                                        ) : shift.shift_type === 'paid_leave' ? (
+                                          <>
+                                            <FileText size={8} />
+                                            <span>Paid Leave</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <CalendarDays size={8} />
+                                            <span>Day Off</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                   {isManager && (
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 ml-2">
@@ -2406,15 +3461,17 @@ const Dashboard = () => {
                                     </div>
                                   )}
                                 </div>
-                                <div className={`
-                                  flex items-center gap-1.5 text-[10px] sm:text-xs
-                                  ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
-                                `}>
-                                  <Clock size={10} className="flex-shrink-0" />
-                                  <span className="font-semibold">
-                                    {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
-                                  </span>
-                                </div>
+                                {(shift.shift_type !== 'emergency' && shift.shift_type !== 'paid_leave' && shift.shift_type !== 'day_off') && (
+                                  <div className={`
+                                    flex items-center gap-1.5 text-[10px] sm:text-xs
+                                    ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                                  `}>
+                                    <Clock size={10} className="flex-shrink-0" />
+                                    <span className="font-semibold">
+                                      {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
+                                    </span>
+                                  </div>
+                                )}
                                 {shift.location && (
                                   <div className={`
                                     flex items-center gap-1 mt-1 text-[9px] sm:text-[10px]
@@ -2429,15 +3486,16 @@ const Dashboard = () => {
                           ))}
                           
                           {/* More shifts indicator */}
-                          {dayShifts.length > (isCurrentMonth ? 4 : 2) && (
+                          {dayShifts.length > (isCurrentMonth ? 3 : 2) && (
                             <div className={`
-                              text-center py-1.5 rounded-lg text-[10px] sm:text-xs font-bold
+                              text-center py-1.5 rounded-lg text-[10px] sm:text-xs font-bold cursor-pointer
+                              transition-all hover:scale-105
                               ${theme === 'dark'
-                                ? 'bg-slate-700/50 text-purple-400 border border-purple-500/20'
-                                : 'bg-slate-100 text-purple-600 border border-purple-200'
+                                ? 'bg-gradient-to-r from-purple-600/30 to-indigo-600/30 text-purple-300 border border-purple-500/40 hover:border-purple-400/60 hover:shadow-lg hover:shadow-purple-500/20'
+                                : 'bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 border border-purple-300 hover:border-purple-400 hover:shadow-md'
                               }
                             `}>
-                              +{dayShifts.length - (isCurrentMonth ? 4 : 2)} more
+                              +{dayShifts.length - (isCurrentMonth ? 3 : 2)} more
                             </div>
                           )}
                           
@@ -2485,13 +3543,15 @@ const Dashboard = () => {
                               `}
                             >
                               <button
-                                onClick={() => {
-                                  if (scheduleTemplates.length > 0) {
-                                    setTemplateModalContext({ day, employeeId: null });
-                                    setShowTemplateModal(true);
-                                  } else {
-                                    openAddShiftModal(day);
-                                  }
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setPopupPosition({
+                                    x: rect.left + rect.width / 2,
+                                    y: rect.top + rect.height / 2,
+                                    visible: true,
+                                    day,
+                                    employeeId: null
+                                  });
                                 }}
                                 className={`
                                   flex items-center gap-1.5 text-xs sm:text-sm font-bold transition-all
@@ -2511,15 +3571,379 @@ const Dashboard = () => {
                     );
                   })}
                 </div>
+                
+                {/* Hover Popup for Days with Many Employees */}
+                {hoveredDay && hoveredDay.shifts.length > 3 && (
+                  <div
+                    className="fixed z-[10000] pointer-events-none"
+                    style={{
+                      left: `${hoveredDay.position.x}px`,
+                      top: `${hoveredDay.position.y + 8}px`,
+                      transform: 'translateX(-50%)'
+                    }}
+                  >
+                    <div className={`
+                      relative w-80 max-w-[90vw] max-h-[400px] overflow-hidden rounded-2xl shadow-2xl border-2
+                      ${theme === 'dark'
+                        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-purple-500/50 shadow-purple-500/20'
+                        : 'bg-white border-purple-300 shadow-xl'
+                      }
+                    `}>
+                      {/* Header */}
+                      <div className={`
+                        px-4 py-3 border-b
+                        ${theme === 'dark' ? 'border-slate-700 bg-slate-800/50' : 'border-slate-200 bg-purple-50'}
+                      `}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`
+                              text-sm font-black
+                              ${theme === 'dark' ? 'text-white' : 'text-slate-900'}
+                            `}>
+                              {hoveredDay.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                            <div className={`
+                              text-xs mt-0.5
+                              ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                            `}>
+                              {hoveredDay.shifts.length} {hoveredDay.shifts.length === 1 ? 'shift' : 'shifts'}
+                            </div>
+                          </div>
+                          <div className={`
+                            px-3 py-1 rounded-full text-xs font-bold
+                            ${theme === 'dark'
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                              : 'bg-purple-100 text-purple-700 border border-purple-200'
+                            }
+                          `}>
+                            {hoveredDay.shifts.length} employees
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Employees List */}
+                      <div className="overflow-y-auto max-h-[320px] p-3 space-y-2">
+                        {hoveredDay.shifts.map((shift, idx) => (
+                          <div
+                            key={shift.id}
+                            className={`
+                              group relative rounded-xl p-3 transition-all duration-200
+                              ${theme === 'dark'
+                                ? 'bg-gradient-to-r from-purple-600/20 via-purple-500/15 to-indigo-600/20 border border-purple-500/30 hover:from-purple-600/30 hover:via-purple-500/25 hover:to-indigo-600/30 hover:border-purple-400/50'
+                                : 'bg-gradient-to-r from-purple-50 via-indigo-50 to-purple-50 border border-purple-200 hover:from-purple-100 hover:via-indigo-100 hover:to-purple-100 hover:border-purple-300'
+                              }
+                            `}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isManager) {
+                                openEditShiftModal(shift);
+                                setHoveredDay(null);
+                              }
+                            }}
+                          >
+                            <div className="flex items-start gap-3">
+                              {/* Avatar */}
+                              <div className={`
+                                w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0
+                                ${theme === 'dark'
+                                  ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                  : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                }
+                              `}>
+                                {shift.employee?.full_name?.charAt(0)?.toUpperCase() || shift.employee?.email?.charAt(0)?.toUpperCase() || '?'}
+                              </div>
+                              
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <div className={`
+                                  font-bold text-sm mb-1
+                                  ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}
+                                `}>
+                                  {shift.employee?.full_name || 'Unknown Employee'}
+                                </div>
+                                {(shift.shift_type !== 'emergency' && shift.shift_type !== 'paid_leave' && shift.shift_type !== 'day_off') && (
+                                  <div className={`
+                                    flex items-center gap-2 text-xs mb-1
+                                    ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                                  `}>
+                                    <Clock size={12} />
+                                    <span className="font-semibold">
+                                      {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
+                                    </span>
+                                  </div>
+                                )}
+                                {(shift.shift_type === 'emergency' || shift.shift_type === 'paid_leave' || shift.shift_type === 'day_off') && (
+                                  <div className={`
+                                    flex items-center gap-2 text-xs mb-1 font-bold uppercase tracking-wide
+                                    ${shift.shift_type === 'emergency'
+                                      ? theme === 'dark' ? 'text-red-300' : 'text-red-600'
+                                      : shift.shift_type === 'paid_leave'
+                                      ? theme === 'dark' ? 'text-emerald-300' : 'text-emerald-600'
+                                      : theme === 'dark' ? 'text-slate-300' : 'text-slate-600'
+                                    }
+                                  `}>
+                                    {shift.shift_type === 'emergency' ? (
+                                      <>
+                                        <AlertCircle size={12} />
+                                        <span>Emergency</span>
+                                      </>
+                                    ) : shift.shift_type === 'paid_leave' ? (
+                                      <>
+                                        <Calendar size={12} />
+                                        <span>Paid Leave</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <CalendarDays size={12} />
+                                        <span>Day Off</span>
+                                      </>
+                                    )}
+                                  </div>
+                                )}
+                                {shift.location && (
+                                  <div className={`
+                                    flex items-center gap-2 text-xs
+                                    ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}
+                                  `}>
+                                    <MapPin size={11} />
+                                    <span className="truncate">{shift.location.name}</span>
+                                  </div>
+                                )}
+                                {shift.employee?.job_title && (
+                                  <div className={`
+                                    mt-1 text-xs
+                                    ${theme === 'dark' ? 'text-slate-500' : 'text-slate-500'}
+                                  `}>
+                                    {shift.employee.job_title}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Edit Icon (only for managers) */}
+                              {isManager && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openEditShiftModal(shift);
+                                    setHoveredDay(null);
+                                  }}
+                                  className={`
+                                    opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg
+                                    ${theme === 'dark'
+                                      ? 'hover:bg-purple-500/30 text-purple-300'
+                                      : 'hover:bg-purple-200 text-purple-600'
+                                    }
+                                  `}
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Footer */}
+                      <div className={`
+                        px-4 py-2 border-t text-center
+                        ${theme === 'dark' ? 'border-slate-700 bg-slate-800/50' : 'border-slate-200 bg-purple-50'}
+                      `}>
+                        <p className={`
+                          text-xs
+                          ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                        `}>
+                          {isManager ? 'Click any shift to edit' : 'Hover to view details'}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Arrow */}
+                    <div
+                      className={`
+                        absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45
+                        ${theme === 'dark'
+                          ? 'bg-slate-800 border-l border-t border-purple-500/50'
+                          : 'bg-white border-l border-t border-purple-300'
+                        }
+                      `}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Schedule Template Selection Modal */}
+          {/* Quick Add Shift Popup */}
+          {popupPosition.visible && (() => {
+            // Calculate smart positioning to keep popup within viewport
+            const popupWidth = 320; // Estimated width
+            const popupHeight = 400; // Estimated max height
+            const padding = 16; // Padding from edges
+            
+            let left = popupPosition.x;
+            let top = popupPosition.y;
+            let transformX = '-50%';
+            let transformY = '-50%';
+            
+            // Adjust horizontal position
+            if (popupPosition.x < popupWidth / 2 + padding) {
+              // Too close to left edge - align to left
+              left = padding;
+              transformX = '0';
+            } else if (popupPosition.x > window.innerWidth - popupWidth / 2 - padding) {
+              // Too close to right edge - align to right
+              left = window.innerWidth - popupWidth - padding;
+              transformX = '0';
+            }
+            
+            // Adjust vertical position
+            if (popupPosition.y < popupHeight / 2 + padding) {
+              // Too close to top edge - show below
+              top = popupPosition.y + 30;
+              transformY = '0';
+            } else if (popupPosition.y > window.innerHeight - popupHeight / 2 - padding) {
+              // Too close to bottom edge - show above
+              top = popupPosition.y - 30;
+              transformY = '-100%';
+            }
+            
+            return (
+              <>
+                <div
+                  className="fixed inset-0 z-[9997]"
+                  onClick={() => setPopupPosition({ ...popupPosition, visible: false })}
+                />
+                <div
+                  className="fixed z-[9998] animate-in zoom-in-95 fade-in duration-200"
+                  style={{
+                    left: `${left}px`,
+                    top: `${top}px`,
+                    transform: `translate(${transformX}, ${transformY})`,
+                    maxHeight: `${window.innerHeight - padding * 2}px`,
+                    maxWidth: `${window.innerWidth - padding * 2}px`,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                <div
+                  className={`
+                    rounded-xl p-4 shadow-2xl border min-w-[280px] max-w-[90vw] overflow-y-auto
+                    ${theme === 'dark'
+                      ? 'bg-slate-800/98 backdrop-blur-xl border-slate-700/80 ring-2 ring-purple-500/20'
+                      : 'bg-white/98 backdrop-blur-xl border-slate-200/80 ring-2 ring-purple-500/10'
+                    }
+                  `}
+                  style={{ maxHeight: `${window.innerHeight - padding * 2}px` }}
+                >
+                  {scheduleTemplates && scheduleTemplates.length > 0 ? (
+                    <>
+                      <div className="mb-3">
+                        <h3 className={`text-sm font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                          Quick Add
+                        </h3>
+                        {popupPosition.employeeId && (
+                          <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                            {employees.find(e => e.id === popupPosition.employeeId)?.full_name || 'Employee'}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {/* Default Templates */}
+                        {scheduleTemplates.filter(t => t.shift_type === 'emergency' || t.shift_type === 'paid_leave' || t.shift_type === 'day_off').length > 0 && (
+                          <div>
+                            <div className={`text-[10px] font-bold uppercase mb-1.5 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+                              Default
+                            </div>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {scheduleTemplates
+                                .filter(t => t.shift_type === 'emergency' || t.shift_type === 'paid_leave' || t.shift_type === 'day_off')
+                                .map(template => (
+                                  <TemplateCard
+                                    key={template.id}
+                                    template={template}
+                                    theme={theme}
+                                    isDefault={true}
+                                    onClick={async () => {
+                                      setTemplateModalContext({ day: popupPosition.day, employeeId: popupPosition.employeeId });
+                                      await handleTemplateClick(template);
+                                      setPopupPosition({ ...popupPosition, visible: false });
+                                    }}
+                                  />
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                        {/* User Templates */}
+                        {scheduleTemplates.filter(t => t.shift_type === 'on_shift' && !t.is_default).length > 0 && (
+                          <div>
+                            <div className={`text-[10px] font-bold uppercase mb-1.5 mt-2 ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+                              Your Templates
+                            </div>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {scheduleTemplates
+                                .filter(t => t.shift_type === 'on_shift' && !t.is_default)
+                                .map(template => (
+                                  <TemplateCard
+                                    key={template.id}
+                                    template={template}
+                                    theme={theme}
+                                    isDefault={false}
+                                    onClick={async () => {
+                                      setTemplateModalContext({ day: popupPosition.day, employeeId: popupPosition.employeeId });
+                                      await handleTemplateClick(template);
+                                      setPopupPosition({ ...popupPosition, visible: false });
+                                    }}
+                                  />
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setPopupPosition({ ...popupPosition, visible: false });
+                          openAddShiftModal(popupPosition.day, popupPosition.employeeId || null);
+                        }}
+                        className={`
+                          w-full mt-3 px-3 py-2 rounded-lg text-xs font-bold transition-all
+                          ${theme === 'dark'
+                            ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                            : 'bg-slate-100 hover:bg-slate-200 text-slate-900'
+                          }
+                        `}
+                      >
+                        Custom Time
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <p className={`text-sm font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                        No templates
+                      </p>
+                      <button
+                        onClick={() => {
+                          setPopupPosition({ ...popupPosition, visible: false });
+                          openAddShiftModal(popupPosition.day, popupPosition.employeeId || null);
+                        }}
+                        className={`
+                          w-full px-3 py-2 rounded-lg text-xs font-bold transition-all
+                          bg-purple-600 hover:bg-purple-700 text-white
+                        `}
+                      >
+                        Add Shift
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+            );
+          })()}
+
+          {/* Schedule Template Selection Modal - Redesigned */}
           {showTemplateModal && (
             <>
               <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
+                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] animate-in fade-in duration-200"
                 onClick={() => setShowTemplateModal(false)}
               />
               <div
@@ -2527,18 +3951,23 @@ const Dashboard = () => {
               >
                 <div
                   className={`
-                    relative w-full max-w-md rounded-2xl p-6 pointer-events-auto
-                    ${theme === 'dark' ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'}
+                    relative w-full max-w-2xl rounded-2xl p-5 pointer-events-auto
+                    transform transition-all duration-300 animate-in zoom-in-95 fade-in
+                    ${theme === 'dark' 
+                      ? 'bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 shadow-2xl' 
+                      : 'bg-white/95 backdrop-blur-xl border border-slate-200/50 shadow-2xl'
+                    }
                   `}
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center justify-between mb-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h2 className={`text-xl font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                        Select Schedule Template
+                      <h2 className={`text-lg font-black ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                        Quick Add Shift
                       </h2>
                       {templateModalContext.employeeId && (
-                        <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+                        <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                           {employees.find(e => e.id === templateModalContext.employeeId)?.full_name || 'Employee'}
                         </p>
                       )}
@@ -2546,249 +3975,94 @@ const Dashboard = () => {
                     <button
                       onClick={() => setShowTemplateModal(false)}
                       className={`
-                        p-2 rounded-lg transition-colors
-                        ${theme === 'dark' ? 'hover:bg-slate-700' : 'hover:bg-slate-100'}
+                        p-1.5 rounded-lg transition-all hover:scale-110
+                        ${theme === 'dark' ? 'hover:bg-slate-700/50' : 'hover:bg-slate-100'}
                       `}
                     >
-                      <X size={20} />
+                      <X size={18} className={theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} />
                     </button>
                   </div>
                   
                   {!scheduleTemplates || scheduleTemplates.length === 0 ? (
                     <div className={`text-center py-8 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-                      <p className="mb-4 font-bold">No schedule templates found.</p>
-                      <p className="text-sm mb-4">Create templates in the Schedule page to use them here.</p>
+                      <p className="mb-2 text-sm font-bold">No templates found</p>
+                      <p className="text-xs mb-4">Create templates in the Schedule page</p>
                       <button
                         onClick={() => {
                           navigate('/schedule');
                           setShowTemplateModal(false);
                         }}
                         className={`
-                          px-4 py-2 rounded-lg font-bold transition-all
-                          ${theme === 'dark'
-                            ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                            : 'bg-purple-600 hover:bg-purple-700 text-white'
-                          }
+                          px-4 py-2 rounded-lg text-xs font-bold transition-all hover:scale-105
+                          bg-purple-600 hover:bg-purple-700 text-white
                         `}
                       >
-                        Go to Schedule Templates
+                        Go to Templates
                       </button>
                     </div>
                   ) : (
-                    <div className="space-y-2 mb-4">
-                      {scheduleTemplates.map(template => (
-                        <button
-                          key={template.id}
-                          onClick={async () => {
-                            const day = templateModalContext.day || new Date();
-                            const employeeId = templateModalContext.employeeId;
-                            
-                            if (!employeeId) {
-                              // If no employee selected (e.g., clicked from header button), open the form to select one
-                              openAddShiftModal(day, null, template);
-                              setShowTemplateModal(false);
-                              return;
-                            }
-                            
-                            // Automatically create the shift using the template
-                            try {
-                              setSubmitting(true);
-                              const { data: { session } } = await supabase.auth.getSession();
-                              const accessToken = session?.access_token;
-
-                              if (!accessToken) {
-                                alert('Error: No access token');
-                                setSubmitting(false);
-                                return;
-                              }
-
-                              // Check if employee already has a shift on this day (limit 1 per day)
-                              const targetDayDate = new Date(day);
-                              targetDayDate.setHours(0, 0, 0, 0);
-                              const targetDateStrLocal = `${targetDayDate.getFullYear()}-${String(targetDayDate.getMonth()+1).padStart(2,'0')}-${String(targetDayDate.getDate()).padStart(2,'0')}`;
-                              const existingShift = shifts.find(s => {
-                                if (s.employee_id !== employeeId) return false;
-                                // Use LOCAL date strings for comparison
-                                const shiftDate = new Date(s.start_time);
-                                const shiftDateStrLocal = `${shiftDate.getFullYear()}-${String(shiftDate.getMonth()+1).padStart(2,'0')}-${String(shiftDate.getDate()).padStart(2,'0')}`;
-                                return shiftDateStrLocal === targetDateStrLocal;
-                              });
-                              
-                              if (existingShift) {
-                                alert(`This employee already has a shift on ${targetDateStrLocal}. Only one shift per employee per day is allowed.`);
-                                setSubmitting(false);
-                                return;
-                              }
-
-                              // Parse template times and apply to the selected day
-                              // Ensure we're working with the correct day (handle timezone issues)
-                              const targetDay = new Date(day);
-                              // Reset to local midnight to avoid timezone issues
-                              targetDay.setHours(0, 0, 0, 0);
-                              
-                              const startTimeParts = template.start_time.split(':');
-                              const endTimeParts = template.end_time.split(':');
-                              
-                              const startHours = parseInt(startTimeParts[0]) || 0;
-                              const startMinutes = parseInt(startTimeParts[1]) || 0;
-                              const endHours = parseInt(endTimeParts[0]) || 0;
-                              const endMinutes = parseInt(endTimeParts[1]) || 0;
-                              
-                              // Create start and end times in local timezone
-                              const start = new Date(targetDay);
-                              start.setHours(startHours, startMinutes, 0, 0);
-                              
-                              const end = new Date(targetDay);
-                              // Handle end time that might be next day (e.g., 23:00 - 07:00)
-                              if (endHours < startHours || (endHours === startHours && endMinutes < startMinutes)) {
-                                end.setDate(end.getDate() + 1);
-                              }
-                              end.setHours(endHours, endMinutes, 0, 0);
-
-                              const headers = {
-                                'Content-Type': 'application/json',
-                                'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-                                'Authorization': `Bearer ${accessToken}`,
-                                'Prefer': 'return=representation'
-                              };
-
-                              const shiftData = {
-                                organization_id: userProfile.organization_id,
-                                employee_id: employeeId,
-                                location_id: null, // Can be set later if needed
-                                start_time: start.toISOString(),
-                                end_time: end.toISOString(),
-                                break_duration_minutes: template.break_duration_minutes || 0,
-                                status: 'scheduled',
-                                notes: template.description || null,
-                                created_by: user.id,
-                                updated_at: new Date().toISOString()
-                              };
-
-                              console.log('Creating shift:', {
-                                day: day.toISOString().split('T')[0],
-                                employeeId,
-                                start: start.toISOString(),
-                                end: end.toISOString(),
-                                shiftData
-                              });
-
-                              const response = await fetch(
-                                `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts`,
-                                {
-                                  method: 'POST',
-                                  headers,
-                                  body: JSON.stringify(shiftData)
-                                }
-                              );
-
-                              if (!response.ok) {
-                                const errorText = await response.text();
-                                console.error('Shift creation failed:', errorText);
-                                throw new Error(errorText);
-                              }
-
-                              const createdShiftData = await response.json();
-                              // Supabase returns array when using Prefer: return=representation
-                              const createdShift = Array.isArray(createdShiftData) ? createdShiftData[0] : createdShiftData;
-                              console.log('Shift created successfully:', createdShift);
-
-                              // Immediately add the shift to state if it matches current filters
-                              if (createdShift) {
-                                // Check if shift is in current date range
-                                const shiftDate = new Date(createdShift.start_time);
-                                const isInRange = view === 'weekly' 
-                                  ? (() => {
-                                      const weekStart = new Date(currentDate);
-                                      weekStart.setDate(currentDate.getDate() - currentDate.getDay());
-                                      weekStart.setHours(0, 0, 0, 0);
-                                      const weekEnd = new Date(weekStart);
-                                      weekEnd.setDate(weekStart.getDate() + 6);
-                                      weekEnd.setHours(23, 59, 59, 999);
-                                      return shiftDate >= weekStart && shiftDate <= weekEnd;
-                                    })()
-                                  : (() => {
-                                      const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-                                      monthStart.setHours(0, 0, 0, 0);
-                                      const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-                                      monthEnd.setHours(23, 59, 59, 999);
-                                      return shiftDate >= monthStart && shiftDate <= monthEnd;
-                                    })();
-
-                                if (isInRange) {
-                                  // Fetch employee and location data for the shift
-                                  const employee = employees.find(e => e.id === createdShift.employee_id);
-                                  const location = locations.find(l => l.id === createdShift.location_id);
-                                  
-                                  const enrichedShift = {
-                                    ...createdShift,
-                                    employee: employee ? { id: employee.id, full_name: employee.full_name, email: employee.email, job_title: employee.job_title } : null,
-                                    location: location ? { id: location.id, name: location.name } : null
-                                  };
-
-                                  // Add to shifts state immediately
-                                  setShifts(prev => {
-                                    // Check if shift already exists (avoid duplicates)
-                                    const exists = prev.some(s => s.id === enrichedShift.id);
-                                    if (exists) return prev;
-                                    // Add and sort by start_time
-                                    return [...prev, enrichedShift].sort((a, b) => 
-                                      new Date(a.start_time) - new Date(b.start_time)
-                                    );
-                                  });
-                                }
-                              }
-
-                              // Refresh shifts to get full data - wait for it to complete
-                              await fetchShifts(accessToken);
-                              
-                              setShowTemplateModal(false);
-                              setSubmitting(false);
-                            } catch (error) {
-                              console.error('Error creating shift from template:', error);
-                              alert('Error creating shift: ' + error.message);
-                              setSubmitting(false);
-                            }
-                          }}
-                          disabled={submitting}
-                          className={`
-                            w-full p-4 rounded-lg text-left transition-all hover:scale-[1.02]
-                            ${theme === 'dark'
-                              ? 'bg-slate-700 hover:bg-slate-600 border border-slate-600'
-                              : 'bg-slate-100 hover:bg-slate-200 border border-slate-200'
-                            }
-                            ${submitting ? 'opacity-50 cursor-not-allowed' : ''}
-                          `}
-                        >
-                          <div className="font-bold mb-1">{template.name}</div>
-                          <div className="text-sm text-slate-500">
-                            {template.start_time} - {template.end_time} {template.timezone}
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                      {/* Default Templates Section */}
+                      {scheduleTemplates.filter(t => t.shift_type === 'emergency' || t.shift_type === 'paid_leave' || t.shift_type === 'day_off').length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={`h-px flex-1 ${theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
+                            <span className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+                              Default
+                            </span>
+                            <div className={`h-px flex-1 ${theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
                           </div>
-                          {template.description && (
-                            <div className="text-xs text-slate-400 mt-1">{template.description}</div>
-                          )}
-                        </button>
-                      ))}
+                          <div className="grid grid-cols-3 gap-2">
+                            {scheduleTemplates
+                              .filter(t => t.shift_type === 'emergency' || t.shift_type === 'paid_leave' || t.shift_type === 'day_off')
+                              .map(template => {
+                                const isEmergency = template.shift_type === 'emergency';
+                                const isPaidLeave = template.shift_type === 'paid_leave';
+                                const isDayOff = template.shift_type === 'day_off';
+                                return (
+                                  <TemplateCard
+                                    key={template.id}
+                                    template={template}
+                                    theme={theme}
+                                    isDefault={true}
+                                    onClick={async () => {
+                                      await handleTemplateClick(template);
+                                    }}
+                                  />
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* User-Created Templates Section */}
+                      {scheduleTemplates.filter(t => t.shift_type === 'on_shift' && !t.is_default).length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={`h-px flex-1 ${theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
+                            <span className={`text-xs font-bold uppercase tracking-wider ${theme === 'dark' ? 'text-slate-500' : 'text-slate-400'}`}>
+                              Your Templates
+                            </span>
+                            <div className={`h-px flex-1 ${theme === 'dark' ? 'bg-slate-700' : 'bg-slate-200'}`}></div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {scheduleTemplates
+                              .filter(t => t.shift_type === 'on_shift' && !t.is_default)
+                              .map(template => (
+                                <TemplateCard
+                                  key={template.id}
+                                  template={template}
+                                  theme={theme}
+                                  isDefault={false}
+                                  onClick={async () => {
+                                    await handleTemplateClick(template);
+                                  }}
+                                />
+                              ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  
-                  {scheduleTemplates && scheduleTemplates.length > 0 && (
-                    <button
-                      onClick={() => {
-                        const day = templateModalContext.day || new Date();
-                        openAddShiftModal(day, templateModalContext.employeeId || '', null);
-                        setShowTemplateModal(false);
-                      }}
-                      className={`
-                        w-full px-4 py-2 rounded-lg font-bold transition-all mt-4
-                        ${theme === 'dark'
-                          ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-900'
-                        }
-                      `}
-                    >
-                      Custom Time
-                    </button>
                   )}
                 </div>
               </div>
@@ -2936,6 +4210,82 @@ const Dashboard = () => {
                           }
                         `}
                       />
+                    </div>
+
+                    {/* Shift Type */}
+                    <div>
+                      <label className={`block text-sm font-bold mb-2 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                        Shift Type
+                      </label>
+                      <select
+                        value={shiftForm.shift_type}
+                        onChange={(e) => {
+                          const selectedType = shiftTypes.find(st => st.value === e.target.value);
+                          setShiftForm({ 
+                            ...shiftForm, 
+                            shift_type: e.target.value,
+                            color: selectedType ? selectedType.defaultColor : shiftForm.color
+                          });
+                        }}
+                        className={`
+                          w-full px-4 py-2 rounded-lg border transition-all
+                          ${theme === 'dark'
+                            ? 'bg-slate-700 border-slate-600 text-white'
+                            : 'bg-white border-slate-300 text-slate-900'
+                          }
+                        `}
+                      >
+                        {shiftTypes.map(type => (
+                          <option key={type.value} value={type.value}>{type.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Color Picker */}
+                    <div>
+                      <label className={`block text-sm font-bold mb-2 ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+                        Color
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="color"
+                          value={shiftForm.color}
+                          onChange={(e) => setShiftForm({ ...shiftForm, color: e.target.value })}
+                          className="w-16 h-10 rounded-lg border-2 cursor-pointer"
+                          style={{ borderColor: shiftForm.color }}
+                        />
+                        <input
+                          type="text"
+                          value={shiftForm.color}
+                          onChange={(e) => setShiftForm({ ...shiftForm, color: e.target.value })}
+                          placeholder="#8b5cf6"
+                          className={`
+                            flex-1 px-4 py-2 rounded-lg border transition-all font-mono text-sm
+                            ${theme === 'dark'
+                              ? 'bg-slate-700 border-slate-600 text-white'
+                              : 'bg-white border-slate-300 text-slate-900'
+                            }
+                          `}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const selectedType = shiftTypes.find(st => st.value === shiftForm.shift_type);
+                            if (selectedType) {
+                              setShiftForm({ ...shiftForm, color: selectedType.defaultColor });
+                            }
+                          }}
+                          className={`
+                            px-3 py-2 rounded-lg text-xs font-bold transition-all
+                            ${theme === 'dark'
+                              ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-900'
+                            }
+                          `}
+                        >
+                          Reset
+                        </button>
+                      </div>
                     </div>
 
                     {/* Status */}
@@ -3103,7 +4453,7 @@ const Dashboard = () => {
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
               </div>
               <div>
-                <p className="font-bold text-sm">Shift deleted successfully</p>
+                <p className="font-bold text-sm">{toastMessage || 'Operation completed successfully'}</p>
               </div>
               <button
                 onClick={() => setShowToast(false)}

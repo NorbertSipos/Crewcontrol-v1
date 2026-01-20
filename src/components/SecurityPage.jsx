@@ -162,7 +162,12 @@ const SecurityPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-emerald-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-emerald-500/30">
       
       {/* --- AMBIENT BACKGROUND GLOWS --- */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
