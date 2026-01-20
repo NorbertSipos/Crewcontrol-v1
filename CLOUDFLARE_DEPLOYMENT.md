@@ -23,6 +23,9 @@ The project has been tested and builds successfully. All necessary files are in 
 - **Build command**: `npm run build`
 - **Build output directory**: `dist`
 - **Root directory**: `/` (leave empty)
+- **Deploy command**: ⚠️ **LEAVE THIS EMPTY** - Cloudflare Pages automatically deploys after build
+
+**⚠️ IMPORTANT:** Do NOT add a deploy command. Cloudflare Pages will automatically deploy the `dist` folder after the build completes. If you see a "Deploy command" field, leave it blank or remove any value.
 
 ### 3. Environment Variables
 
@@ -98,6 +101,16 @@ Total gzipped size: ~200 KB (excellent for performance!)
 - Check Node.js version (should be 18+)
 - Verify all dependencies are in `package.json`
 - Check build logs in Cloudflare dashboard
+
+### Deploy Command Error (Wrangler)
+**Error:** `Missing entry-point to Worker script or to assets directory`
+
+**Solution:** 
+- Go to your Cloudflare Pages project settings
+- Find the **"Deploy command"** field
+- **DELETE/REMOVE** any value in this field (leave it completely empty)
+- Cloudflare Pages does NOT need a deploy command - it automatically deploys after build
+- Save settings and redeploy
 
 ### Routes Not Working
 - Verify `_redirects` file is in `public/` folder
