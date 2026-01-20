@@ -2756,13 +2756,13 @@ const Dashboard = () => {
               </div>
 
               {/* Filters - Redesigned */}
-              <div className="mt-4">
+              <div className="mt-4 -mx-4 sm:mx-0 px-4 sm:px-0">
                 {/* Filter Toggle Button and Search - Mobile Optimized */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3">
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`
-                      flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+                      flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0
                       ${theme === 'dark'
                         ? 'bg-slate-800/50 hover:bg-slate-700 text-slate-300 border border-slate-700'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
@@ -2776,20 +2776,20 @@ const Dashboard = () => {
                   
                   {/* Search - Always visible, properly contained */}
                   <div className={`
-                    flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:flex-1 sm:max-w-xs
+                    flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:flex-1 sm:max-w-xs md:max-w-sm min-w-0
                     ${theme === 'dark' 
                       ? 'bg-slate-800/50 border-slate-700' 
                       : 'bg-slate-100 border-slate-200'
                     }
                   `}>
-                    <Search size={16} className={theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} />
+                    <Search size={16} className={`flex-shrink-0 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`} />
                     <input
                       type="text"
                       placeholder="Search employees..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className={`
-                        flex-1 bg-transparent border-none outline-none text-xs
+                        flex-1 bg-transparent border-none outline-none text-xs min-w-0
                         ${theme === 'dark' ? 'text-white placeholder:text-slate-500' : 'text-slate-900 placeholder:text-slate-400'}
                       `}
                     />
@@ -3246,7 +3246,7 @@ const Dashboard = () => {
                 </div>
                 
                 {/* Calendar Grid */}
-                <div className="grid grid-cols-7 gap-0.5 p-2">
+                <div className="grid grid-cols-7 gap-0.5 sm:gap-1 p-1 sm:p-2 overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
                   {days.map((day, idx) => {
                     const dayShifts = getShiftsForDate(day);
                     const isCurrentMonth = day.getMonth() === currentDate.getMonth();
@@ -3274,7 +3274,7 @@ const Dashboard = () => {
                           setHoveredDay(null);
                         }}
                         className={`
-                          relative min-h-[120px] sm:min-h-[140px] p-2 sm:p-3 rounded-xl transition-all duration-200
+                          relative min-h-[100px] sm:min-h-[140px] md:min-h-[160px] p-2 sm:p-3 md:p-4 rounded-xl transition-all duration-200
                           ${!isCurrentMonth 
                             ? theme === 'dark' 
                               ? 'bg-slate-900/20 text-slate-600 opacity-50' 
@@ -3364,7 +3364,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* Shifts List */}
-                        <div className="space-y-1.5 sm:space-y-2 relative">
+                        <div className="space-y-1 sm:space-y-1.5 md:space-y-2 relative">
                           {dayShifts.slice(0, isCurrentMonth ? 3 : 2).map((shift, shiftIdx) => (
                             <div
                               key={shift.id}
@@ -3380,8 +3380,9 @@ const Dashboard = () => {
                                 }
                               }}
                               className={`
-                                group relative overflow-hidden rounded-lg p-2 sm:p-2.5 transition-all duration-200
+                                group relative overflow-hidden rounded-lg p-1.5 sm:p-2 md:p-2.5 transition-all duration-200
                                 ${isManager ? 'cursor-grab active:cursor-grabbing hover:scale-[1.02]' : 'cursor-pointer'}
+                                ${shiftIdx === 2 ? 'hidden sm:block' : ''}
                               `}
                               style={{
                                 backgroundColor: shift.color ? `${shift.color}15` : (theme === 'dark' ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)'),
@@ -3416,45 +3417,62 @@ const Dashboard = () => {
                               <div className="relative">
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="flex-1 min-w-0">
-                                    <div 
-                                      className="text-xs sm:text-sm font-bold truncate"
-                                      style={{ color: shift.color || (theme === 'dark' ? '#c4b5fd' : '#6d28d9') }}
-                                    >
-                                      {shift.employee?.full_name || 'Unknown'}
-                                    </div>
-                                    {/* Shift Type Badge for Special Shifts */}
-                                    {(shift.shift_type === 'emergency' || shift.shift_type === 'paid_leave' || shift.shift_type === 'day_off') && (
-                                      <div className={`
-                                        inline-flex items-center gap-1 mt-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider
-                                        ${shift.shift_type === 'emergency'
-                                          ? theme === 'dark'
-                                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                            : 'bg-red-50 text-red-600 border border-red-200'
-                                          : shift.shift_type === 'paid_leave'
-                                          ? theme === 'dark'
-                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                            : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
-                                          : theme === 'dark'
-                                            ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
-                                            : 'bg-slate-100 text-slate-600 border border-slate-300'
-                                        }
-                                      `}>
-                                        {shift.shift_type === 'emergency' ? (
-                                          <>
-                                            <AlertCircle size={8} />
-                                            <span>Emergency</span>
-                                          </>
-                                        ) : shift.shift_type === 'paid_leave' ? (
-                                          <>
-                                            <FileText size={8} />
-                                            <span>Paid Leave</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <CalendarDays size={8} />
-                                            <span>Day Off</span>
-                                          </>
-                                        )}
+                                    {shift.shift_type === 'emergency' || shift.shift_type === 'paid_leave' || shift.shift_type === 'day_off' ? (
+                                      <div className="flex flex-col gap-1">
+                                        <div 
+                                          className="text-[10px] sm:text-xs md:text-sm font-bold truncate"
+                                          style={{ color: shift.color || (theme === 'dark' ? '#c4b5fd' : '#6d28d9') }}
+                                        >
+                                          {shift.employee?.full_name || 'Unknown'}
+                                        </div>
+                                        {/* Shift Type Badge for Special Shifts */}
+                                        <div className={`
+                                          inline-flex items-center gap-0.5 sm:gap-1 mt-0.5 px-1 sm:px-1.5 py-0.5 rounded-md text-[8px] sm:text-[9px] font-bold uppercase tracking-wider
+                                          ${shift.shift_type === 'emergency'
+                                            ? theme === 'dark'
+                                              ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                              : 'bg-red-50 text-red-600 border border-red-200'
+                                            : shift.shift_type === 'paid_leave'
+                                            ? theme === 'dark'
+                                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                              : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                                            : theme === 'dark'
+                                              ? 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
+                                              : 'bg-slate-100 text-slate-600 border border-slate-300'
+                                          }
+                                        `}>
+                                          {shift.shift_type === 'emergency' ? (
+                                            <>
+                                              <AlertCircle size={7} className="sm:w-2 sm:h-2" />
+                                              <span className="truncate">Emergency</span>
+                                            </>
+                                          ) : shift.shift_type === 'paid_leave' ? (
+                                            <>
+                                              <FileText size={7} className="sm:w-2 sm:h-2" />
+                                              <span className="truncate">Paid Leave</span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <CalendarDays size={7} className="sm:w-2 sm:h-2" />
+                                              <span className="truncate">Day Off</span>
+                                            </>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="flex flex-col gap-0.5">
+                                        <div 
+                                          className="text-[10px] sm:text-xs md:text-sm font-bold truncate"
+                                          style={{ color: shift.color || (theme === 'dark' ? '#c4b5fd' : '#6d28d9') }}
+                                        >
+                                          {shift.employee?.full_name || 'Unknown'}
+                                        </div>
+                                        <div className={`
+                                          text-[9px] sm:text-[10px] opacity-80 font-medium
+                                          ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}
+                                        `}>
+                                          {formatTime(shift.start_time)} - {formatTime(shift.end_time)}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
