@@ -123,62 +123,169 @@ const App = () => {
         </section>
       </div>
 
-      {/* --- FLOATING DASHBOARD --- */}
-      <div className="relative z-20 -mt-32 md:-mt-48 px-4 mb-32 group perspective-1000">
-         <div className="max-w-6xl mx-auto bg-slate-900 rounded-3xl shadow-2xl shadow-purple-900/50 border border-white/10 overflow-hidden transform group-hover:rotate-x-2 transition-transform duration-700 ease-out relative">
-            
-            {/* Reflection Glare */}
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-white/5 to-transparent pointer-events-none z-20"></div>
-
-            {/* Browser Header */}
-            <div className="bg-slate-950/50 border-b border-white/5 px-6 py-4 flex items-center justify-between backdrop-blur-md">
-                <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
-                </div>
-                <div className="h-6 w-64 bg-white/5 rounded-full border border-white/5 mx-auto flex items-center justify-center text-[10px] font-mono text-slate-500">
-                  app.crewcontrol.io/dashboard
-                </div>
-            </div>
-
-            {/* Dashboard UI Mockup */}
-            <div className="p-8 bg-[#0B0F19] grid grid-cols-1 md:grid-cols-4 gap-8 min-h-[500px] relative">
-               {/* Sidebar Mock */}
-               <div className="hidden md:flex flex-col gap-4 border-r border-white/5 pr-6">
-                  <div className="h-10 w-full bg-purple-500/20 rounded-lg border border-purple-500/30"></div>
-                  <div className="h-10 w-3/4 bg-white/5 rounded-lg"></div>
-                  <div className="h-10 w-4/5 bg-white/5 rounded-lg"></div>
-                  <div className="mt-auto h-32 w-full bg-gradient-to-b from-white/5 to-transparent rounded-xl border border-white/5"></div>
+      {/* --- MODERN DASHBOARD MOCKUP --- */}
+      <div className="relative z-20 -mt-32 md:-mt-48 px-4 mb-32">
+         <div className="max-w-7xl mx-auto">
+            {/* Glassmorphic Container */}
+            <div className="relative bg-gradient-to-br from-slate-900/90 via-slate-950/90 to-slate-900/90 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 shadow-2xl shadow-purple-900/30 overflow-hidden group hover:border-purple-500/30 transition-all duration-500">
+               
+               {/* Animated Background Glow */}
+               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+               <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -mr-48 -mt-48 group-hover:bg-purple-600/20 transition-colors"></div>
+               
+               {/* Browser Header - Modern */}
+               <div className="relative bg-slate-950/60 border-b border-white/10 px-6 py-4 flex items-center justify-between backdrop-blur-md">
+                  <div className="flex gap-2">
+                     <div className="w-3 h-3 rounded-full bg-red-500/30 border border-red-500/50 shadow-sm"></div>
+                     <div className="w-3 h-3 rounded-full bg-yellow-500/30 border border-yellow-500/50 shadow-sm"></div>
+                     <div className="w-3 h-3 rounded-full bg-emerald-500/30 border border-emerald-500/50 shadow-sm"></div>
+                  </div>
+                  <div className="h-7 px-6 bg-white/5 rounded-full border border-white/10 flex items-center justify-center text-[11px] font-mono text-slate-400 backdrop-blur-sm">
+                     <span className="text-purple-400">app.</span>crewcontrol.io<span className="text-slate-500">/dashboard</span>
+                  </div>
+                  <div className="w-20"></div>
                </div>
 
-               {/* Main Content */}
-               <div className="col-span-1 md:col-span-3 grid grid-cols-2 gap-6">
-                  {/* Stat Cards */}
-                  <div className="col-span-1 h-32 bg-slate-900 rounded-2xl border border-white/5 p-5 relative overflow-hidden">
-                     <div className="absolute top-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full blur-xl"></div>
-                     <div className="h-8 w-8 bg-purple-500/20 rounded-lg mb-4"></div>
-                     <div className="h-4 w-20 bg-white/10 rounded mb-2"></div>
-                     <div className="h-8 w-32 bg-white/20 rounded"></div>
-                  </div>
-                  <div className="col-span-1 h-32 bg-slate-900 rounded-2xl border border-white/5 p-5 relative overflow-hidden">
-                     <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
-                     <div className="h-8 w-8 bg-emerald-500/20 rounded-lg mb-4"></div>
-                     <div className="h-4 w-20 bg-white/10 rounded mb-2"></div>
-                     <div className="h-8 w-32 bg-white/20 rounded"></div>
+               {/* Dashboard Content */}
+               <div className="relative p-8 bg-gradient-to-b from-slate-950/50 to-slate-900/30">
+                  
+                  {/* Top Bar - Modern Design */}
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/10">
+                     {/* Left: Date Navigation */}
+                     <div className="flex items-center gap-3">
+                        <div className="h-10 px-4 bg-gradient-to-r from-purple-500/20 to-purple-600/10 rounded-xl border border-purple-500/30 flex items-center justify-center shadow-lg shadow-purple-500/10">
+                           <span className="text-sm font-bold text-purple-300">January 2026</span>
+                        </div>
+                        <div className="flex gap-2">
+                           <button className="h-9 w-9 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 flex items-center justify-center transition-all hover:scale-105">
+                              <ChevronDown size={14} className="text-slate-400 rotate-90" />
+                           </button>
+                           <button className="h-9 w-9 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 flex items-center justify-center transition-all hover:scale-105">
+                              <ChevronDown size={14} className="text-slate-400 -rotate-90" />
+                           </button>
+                        </div>
+                     </div>
+                     
+                     {/* Right: Stats & View Toggle */}
+                     <div className="flex items-center gap-4">
+                        {/* Stats Pills */}
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                           <Users size={14} className="text-purple-400" />
+                           <span className="text-xs font-bold text-purple-300">24</span>
+                           <span className="text-[10px] text-slate-400">Active</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                           <Calendar size={14} className="text-emerald-400" />
+                           <span className="text-xs font-bold text-emerald-300">142</span>
+                           <span className="text-[10px] text-slate-400">Shifts</span>
+                        </div>
+                        
+                        {/* View Toggle */}
+                        <div className="flex gap-1 p-1 bg-white/5 rounded-lg border border-white/10">
+                           <button className="px-3 py-1.5 bg-purple-500/20 rounded-md border border-purple-500/30 text-xs font-bold text-purple-300 shadow-sm">Week</button>
+                           <button className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-slate-300 transition-colors">Month</button>
+                        </div>
+                     </div>
                   </div>
 
-                  {/* Big Chart Area */}
-                  <div className="col-span-2 h-72 bg-slate-900 rounded-2xl border border-white/5 p-6 relative flex items-center justify-center">
-                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5"></div>
-                     <div className="text-slate-600 font-mono text-sm tracking-widest">[ INTERACTIVE SCHEDULE GRID ]</div>
-                     
-                     {/* Decorative Lines */}
-                     <div className="absolute bottom-10 left-10 right-10 h-32 flex items-end justify-between gap-2 opacity-30">
-                        {[40, 70, 45, 90, 60, 80, 50, 70, 95, 60].map((h, i) => (
-                          <div key={i} style={{height: `${h}%`}} className="w-full bg-purple-500 rounded-t-sm"></div>
+                  {/* Calendar Grid - Enhanced */}
+                  <div className="mb-4">
+                     {/* Day Headers */}
+                     <div className="grid grid-cols-7 gap-2 mb-3">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
+                           <div key={i} className="text-center text-xs font-bold text-slate-400 py-2 uppercase tracking-wider">
+                              {day}
+                           </div>
                         ))}
                      </div>
+
+                     {/* Calendar Days */}
+                     <div className="grid grid-cols-7 gap-2">
+                        {[
+                           { day: 15, shifts: [{ name: 'Sarah M.', startTime: '9:00 AM', endTime: '5:00 PM', color: 'purple' }, { name: 'Mike T.', startTime: '2:00 PM', endTime: '10:00 PM', color: 'blue' }] },
+                           { day: 16, shifts: [{ name: 'Emma L.', startTime: '8:00 AM', endTime: '4:00 PM', color: 'emerald' }, { name: 'John D.', startTime: '12:00 PM', endTime: '8:00 PM', color: 'purple' }, { name: 'Lisa K.', startTime: '6:00 PM', endTime: '2:00 AM', color: 'pink' }] },
+                           { day: 17, shifts: [{ name: 'Tom R.', startTime: '10:00 AM', endTime: '6:00 PM', color: 'blue' }] },
+                           { day: 18, shifts: [{ name: 'Anna B.', startTime: '9:00 AM', endTime: '5:00 PM', color: 'purple' }, { name: 'Chris P.', startTime: '3:00 PM', endTime: '11:00 PM', color: 'emerald' }] },
+                           { day: 19, shifts: [{ name: 'David W.', startTime: '8:00 AM', endTime: '4:00 PM', color: 'blue' }, { name: 'Sophie H.', startTime: '1:00 PM', endTime: '9:00 PM', color: 'pink' }] },
+                           { day: 20, shifts: [{ name: 'Emergency', type: 'emergency' }] },
+                           { day: 21, shifts: [] },
+                        ].map((date, i) => (
+                           <div 
+                              key={i} 
+                              className="min-h-[120px] bg-gradient-to-br from-slate-900/60 to-slate-950/60 rounded-xl border border-white/10 p-3 relative group hover:border-purple-500/40 hover:bg-slate-900/80 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10"
+                           >
+                              {/* Day Number */}
+                              <div className="text-sm font-bold text-slate-300 mb-2 leading-none">{date.day}</div>
+                              
+                              {/* Shifts */}
+                              <div className="space-y-1.5">
+                                 {date.shifts.slice(0, 3).map((shift, idx) => (
+                                    <div 
+                                       key={idx}
+                                       className={`
+                                          text-[10px] font-bold px-2 py-1.5 rounded-lg border backdrop-blur-sm
+                                          transition-all group-hover:scale-[1.02]
+                                          ${shift.type === 'emergency' 
+                                             ? 'bg-red-500/20 text-red-300 border-red-500/40 shadow-sm shadow-red-500/10' 
+                                             : shift.color === 'purple'
+                                             ? 'bg-purple-500/20 text-purple-300 border-purple-500/40 shadow-sm shadow-purple-500/10'
+                                             : shift.color === 'blue'
+                                             ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 shadow-sm shadow-blue-500/10'
+                                             : shift.color === 'emerald'
+                                             ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+                                             : 'bg-pink-500/20 text-pink-300 border-pink-500/40 shadow-sm shadow-pink-500/10'
+                                          }
+                                       `}
+                                    >
+                                       {shift.type === 'emergency' ? (
+                                          <span className="flex items-center gap-1">
+                                             <span>🚨</span>
+                                             <span>Emergency</span>
+                                          </span>
+                                       ) : (
+                                          <div className="flex flex-col gap-0.5">
+                                             <span className="truncate font-semibold">{shift.name.split(' ')[0]}</span>
+                                             <span className="text-[9px] opacity-80 font-medium">{shift.startTime} - {shift.endTime}</span>
+                                          </div>
+                                       )}
+                                    </div>
+                                 ))}
+                                 {date.shifts.length > 3 && (
+                                    <div className="text-[10px] text-slate-500 font-medium px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                       +{date.shifts.length - 3} more
+                                    </div>
+                                 )}
+                              </div>
+                              
+                              {/* Empty State */}
+                              {date.shifts.length === 0 && (
+                                 <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                                    <div className="w-8 h-8 border-2 border-dashed border-white/20 rounded-lg"></div>
+                                 </div>
+                              )}
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+
+                  {/* Bottom Action Bar - Modern */}
+                  <div className="flex items-center justify-between pt-6 border-t border-white/10">
+                     <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                           <CheckCircle2 size={16} className="text-blue-400" />
+                           <span className="text-sm font-bold text-blue-300">98%</span>
+                           <span className="text-xs text-slate-400">Coverage</span>
+                        </div>
+                        <div className="h-8 w-px bg-white/10"></div>
+                        <div className="text-xs text-slate-500">
+                           <span className="font-semibold text-slate-400">142</span> shifts scheduled this week
+                        </div>
+                     </div>
+                     
+                     <button className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-500 rounded-xl text-sm font-bold text-white hover:from-purple-500 hover:to-purple-400 transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 hover:scale-105 flex items-center gap-2">
+                        <Zap size={14} />
+                        Auto-Fill Week
+                     </button>
                   </div>
                </div>
             </div>
@@ -199,66 +306,180 @@ const App = () => {
 
       <main className="flex-grow">
         
-        {/* --- BENTO GRID FEATURES --- */}
-        <section id="features" className="py-24 relative">
-          <div className="max-w-7xl mx-auto px-6">
-            <div className="text-center mb-20">
-               <h2 className="text-4xl md:text-5xl font-black mb-6">Everything you need to <span className="text-purple-400">run operations.</span></h2>
+        {/* --- MODERN FEATURES GRID --- */}
+        <section id="features" className="py-32 relative overflow-hidden">
+          {/* Background Effects */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent pointer-events-none"></div>
+          
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <div className="text-center mb-16">
+               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-sm font-semibold mb-6">
+                  <Zap size={14} className="text-purple-400" />
+                  Core Features
+               </div>
+               <h2 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                  Everything you need to <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400">run operations.</span>
+               </h2>
                <p className="text-slate-400 max-w-2xl mx-auto text-lg">A complete suite of tools designed to replace your spreadsheets, WhatsApp groups, and paper timesheets.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 grid-rows-2 gap-6 h-auto md:h-[800px]">
+            {/* Modern Card Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                
-               {/* 1. Manager Card (Large Left) */}
-               <div className="col-span-1 md:col-span-2 row-span-2 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden group hover:border-purple-500/30 hover:-translate-y-1 transition-all duration-500 cursor-pointer">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-[80px] -mr-20 -mt-20 group-hover:bg-purple-600/20 transition-colors"></div>
+               {/* Card 1: Smart Scheduling */}
+               <div className="group relative bg-gradient-to-br from-slate-900/80 to-slate-950/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 overflow-hidden hover:border-purple-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/20">
+                  {/* Animated Background Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   
+                  {/* Icon with Glow */}
+                  <div className="relative z-10 mb-6">
+                     <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-2xl flex items-center justify-center border border-purple-500/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-purple-500/20">
+                        <Calendar className="text-purple-400" size={28} />
+                     </div>
+                  </div>
+
                   <div className="relative z-10">
-                     <div className="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-8 border border-purple-500/30 group-hover:scale-110 transition-transform duration-500">
-                        <Briefcase className="text-purple-400" size={28} />
-                     </div>
-                     <h3 className="text-3xl font-bold mb-4">Smart Scheduling</h3>
-                     <p className="text-slate-400 text-lg mb-8 max-w-md">Drag and drop shifts in a beautiful calendar. Check availability instantly and publish schedules to the whole team with a single click.</p>
+                     <h3 className="text-2xl font-black mb-3 group-hover:text-purple-300 transition-colors">Smart Scheduling</h3>
+                     <p className="text-slate-400 mb-6 leading-relaxed">Drag and drop shifts in a beautiful calendar. Check availability instantly and publish schedules with a single click.</p>
                      
-                     <div className="flex gap-3 mb-10">
-                        <div className="px-4 py-2 bg-white/5 rounded-full text-sm font-medium border border-white/5">AI Conflict Detection</div>
-                        <div className="px-4 py-2 bg-white/5 rounded-full text-sm font-medium border border-white/5">Auto-Publish</div>
+                     {/* Feature Pills */}
+                     <div className="flex flex-wrap gap-2 mb-6">
+                        <span className="px-3 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full text-xs font-semibold text-purple-300">AI Detection</span>
+                        <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-medium text-slate-300">Auto-Fill</span>
+                        <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-medium text-slate-300">One-Click Publish</span>
+                     </div>
+
+                     {/* Visual Element */}
+                     <div className="relative h-32 bg-slate-950/50 rounded-xl border border-white/5 overflow-hidden group-hover:border-purple-500/30 transition-colors">
+                        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(168,85,247,0.1)_50%,transparent_100%)] animate-[shimmer_3s_infinite]"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                           <div className="grid grid-cols-7 gap-1 w-full px-4">
+                              {[1, 2, 3, 4, 5, 6, 7].map((day, i) => (
+                                 <div key={i} className={`
+                                    h-12 rounded-lg border flex items-center justify-center text-xs font-bold
+                                    ${i === 1 || i === 3 
+                                       ? 'bg-purple-500/20 border-purple-500/30 text-purple-400' 
+                                       : 'bg-white/5 border-white/5 text-slate-500'
+                                    }
+                                 `}>
+                                    {i === 1 || i === 3 ? '✓' : day}
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
                      </div>
                   </div>
 
-                  {/* Visual Mockup inside card */}
-                  <div className="absolute bottom-0 right-0 w-3/4 h-1/2 bg-[#0B0F19] rounded-tl-3xl border-t border-l border-white/10 p-6 shadow-2xl translate-y-10 group-hover:translate-y-6 transition-transform duration-500">
-                      <div className="flex gap-4 mb-4">
-                         <div className="w-1/3 h-24 bg-purple-500/10 rounded-xl border border-purple-500/20"></div>
-                         <div className="w-1/3 h-24 bg-white/5 rounded-xl border border-white/5"></div>
-                         <div className="w-1/3 h-24 bg-white/5 rounded-xl border border-white/5"></div>
-                      </div>
-                      <div className="w-full h-8 bg-purple-600 rounded-lg flex items-center justify-center text-xs font-bold text-white">Publish Schedule</div>
+                  {/* Corner Accent */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-purple-500/10 transition-colors"></div>
+               </div>
+
+               {/* Card 2: Team Management */}
+               <div className="group relative bg-gradient-to-br from-slate-900/80 to-slate-950/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 overflow-hidden hover:border-blue-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/20">
+                  {/* Animated Background Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Icon with Glow */}
+                  <div className="relative z-10 mb-6">
+                     <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-2xl flex items-center justify-center border border-blue-500/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-blue-500/20">
+                        <Users className="text-blue-400" size={28} />
+                     </div>
                   </div>
+
+                  <div className="relative z-10">
+                     <h3 className="text-2xl font-black mb-3 group-hover:text-blue-300 transition-colors">Team Management</h3>
+                     <p className="text-slate-400 mb-6 leading-relaxed">Organize employees into teams, assign roles, and manage permissions with intuitive controls.</p>
+                     
+                     {/* Feature Pills */}
+                     <div className="flex flex-wrap gap-2 mb-6">
+                        <span className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full text-xs font-semibold text-blue-300">Multi-Team</span>
+                        <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-medium text-slate-300">Role-Based</span>
+                        <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-medium text-slate-300">Invites</span>
+                     </div>
+
+                     {/* Visual Element */}
+                     <div className="relative h-32 bg-slate-950/50 rounded-xl border border-white/5 overflow-hidden group-hover:border-blue-500/30 transition-colors">
+                        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(59,130,246,0.1)_50%,transparent_100%)] animate-[shimmer_3s_infinite]"></div>
+                        <div className="absolute inset-0 flex items-center justify-center p-4">
+                           <div className="flex gap-3 w-full">
+                              <div className="flex-1 h-full bg-blue-500/20 rounded-lg border border-blue-500/30 flex flex-col items-center justify-center gap-2">
+                                 <div className="w-8 h-8 bg-blue-500/30 rounded-full"></div>
+                                 <div className="h-2 w-12 bg-blue-500/20 rounded"></div>
+                              </div>
+                              <div className="flex-1 h-full bg-white/5 rounded-lg border border-white/5 flex flex-col items-center justify-center gap-2">
+                                 <div className="w-8 h-8 bg-white/10 rounded-full"></div>
+                                 <div className="h-2 w-12 bg-white/5 rounded"></div>
+                              </div>
+                              <div className="flex-1 h-full bg-white/5 rounded-lg border border-white/5 flex flex-col items-center justify-center gap-2">
+                                 <div className="w-8 h-8 bg-white/10 rounded-full"></div>
+                                 <div className="h-2 w-12 bg-white/5 rounded"></div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Corner Accent */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/10 transition-colors"></div>
                </div>
 
-               {/* 2. Mobile App Card (Top Right) */}
-               <div className="col-span-1 row-span-1 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-pink-500/30 hover:-translate-y-1 transition-all duration-500 cursor-pointer">
-                   <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-pink-500/10 to-transparent"></div>
-                   <div className="w-12 h-12 bg-pink-500/20 rounded-xl flex items-center justify-center mb-6 border border-pink-500/30 group-hover:scale-110 transition-transform duration-500">
-                      <Smartphone className="text-pink-400" size={24} />
-                   </div>
-                   <h3 className="text-2xl font-bold mb-2">Mobile First</h3>
-                   <p className="text-slate-400 text-sm">Employees check shifts, swap times, and clock in from their pockets.</p>
-               </div>
+               {/* Card 3: Analytics & Insights */}
+               <div className="group relative bg-gradient-to-br from-slate-900/80 to-slate-950/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 overflow-hidden hover:border-emerald-500/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/20">
+                  {/* Animated Background Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
+                  {/* Icon with Glow */}
+                  <div className="relative z-10 mb-6">
+                     <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 rounded-2xl flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-lg shadow-emerald-500/20">
+                        <BarChart3 className="text-emerald-400" size={28} />
+                     </div>
+                  </div>
 
-               {/* 3. Payroll Card (Bottom Right) */}
-               <div className="col-span-1 row-span-1 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-emerald-500/30 hover:-translate-y-1 transition-all duration-500 cursor-pointer">
-                   <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-emerald-500/10 to-transparent"></div>
-                   <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 border border-emerald-500/30 group-hover:scale-110 transition-transform duration-500">
-                      <BarChart3 className="text-emerald-400" size={24} />
-                   </div>
-                   <h3 className="text-2xl font-bold mb-2">Payroll Ready</h3>
-                   <p className="text-slate-400 text-sm">Export timesheets directly to Quickbooks, ADP, or Xero in seconds.</p>
+                  <div className="relative z-10">
+                     <h3 className="text-2xl font-black mb-3 group-hover:text-emerald-300 transition-colors">Analytics & Insights</h3>
+                     <p className="text-slate-400 mb-6 leading-relaxed">Track coverage, labor costs, and shift patterns with real-time dashboards and reports.</p>
+                     
+                     {/* Feature Pills */}
+                     <div className="flex flex-wrap gap-2 mb-6">
+                        <span className="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs font-semibold text-emerald-300">Real-Time</span>
+                        <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-medium text-slate-300">Reports</span>
+                        <span className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-xs font-medium text-slate-300">Trends</span>
+                     </div>
+
+                     {/* Visual Element - Chart */}
+                     <div className="relative h-32 bg-slate-950/50 rounded-xl border border-white/5 overflow-hidden group-hover:border-emerald-500/30 transition-colors">
+                        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(16,185,129,0.1)_50%,transparent_100%)] animate-[shimmer_3s_infinite]"></div>
+                        <div className="absolute inset-0 flex items-end justify-center gap-1.5 px-4 py-3">
+                           {[35, 60, 45, 75, 55, 70, 85].map((h, i) => (
+                              <div 
+                                 key={i} 
+                                 style={{height: `${h}%`}} 
+                                 className="flex-1 bg-emerald-500/40 rounded-t border border-emerald-500/50 group-hover:bg-emerald-500/50 transition-colors shadow-sm"
+                              ></div>
+                           ))}
+                        </div>
+                        {/* Chart Grid Lines */}
+                        <div className="absolute inset-0 opacity-10">
+                           <div className="h-full w-full bg-[linear-gradient(to_top,white_1px,transparent_1px)] bg-[length:100%_25%]"></div>
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Corner Accent */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-emerald-500/10 transition-colors"></div>
                </div>
 
             </div>
           </div>
+
+          {/* Add shimmer animation */}
+          <style>{`
+            @keyframes shimmer {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(100%); }
+            }
+          `}</style>
         </section>
 
         {/* --- 3-CARD PRICING TEASER --- */}
