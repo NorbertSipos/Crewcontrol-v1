@@ -373,6 +373,16 @@ const Dashboard = () => {
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
+        // Fetch all metrics in parallel with timeout protection
+        const fetchWithTimeout = (url, options, timeout = 5000) => {
+          return Promise.race([
+            fetch(url, options),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Request timeout')), timeout)
+            )
+          ]);
+        };
+
         // Fetch all metrics in parallel
         const [
           employeesResponse,
@@ -383,7 +393,7 @@ const Dashboard = () => {
           newHiresResponse,
         ] = await Promise.all([
           // Total employees
-          fetch(
+          fetchWithTimeout(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?organization_id=eq.${orgId}&role=eq.employee&is_active=eq.true&select=id`,
             {
               headers: {
@@ -391,9 +401,9 @@ const Dashboard = () => {
                 'Authorization': `Bearer ${accessToken}`,
               },
             }
-          ),
+          ).catch(() => ({ json: async () => [] })),
           // Pending invitations
-          fetch(
+          fetchWithTimeout(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/invitations?organization_id=eq.${orgId}&accepted_at=is.null&select=id`,
             {
               headers: {
@@ -401,9 +411,9 @@ const Dashboard = () => {
                 'Authorization': `Bearer ${accessToken}`,
               },
             }
-          ),
+          ).catch(() => ({ json: async () => [] })),
           // Pending time-off requests
-          fetch(
+          fetchWithTimeout(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/time_off_requests?organization_id=eq.${orgId}&status=eq.pending&select=id`,
             {
               headers: {
@@ -411,9 +421,9 @@ const Dashboard = () => {
                 'Authorization': `Bearer ${accessToken}`,
               },
             }
-          ),
+          ).catch(() => ({ json: async () => [] })),
           // Today's shifts
-          fetch(
+          fetchWithTimeout(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/shifts?organization_id=eq.${orgId}&start_time=gte.${todayStart.toISOString()}&start_time=lt.${todayEnd.toISOString()}&select=id`,
             {
               headers: {
@@ -421,9 +431,9 @@ const Dashboard = () => {
                 'Authorization': `Bearer ${accessToken}`,
               },
             }
-          ),
+          ).catch(() => ({ json: async () => [] })),
           // Active now (people currently clocked in)
-          fetch(
+          fetchWithTimeout(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/attendance?organization_id=eq.${orgId}&clock_out=is.null&select=id`,
             {
               headers: {
@@ -431,9 +441,9 @@ const Dashboard = () => {
                 'Authorization': `Bearer ${accessToken}`,
               },
             }
-          ),
+          ).catch(() => ({ json: async () => [] })),
           // New hires this month
-          fetch(
+          fetchWithTimeout(
             `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/users?organization_id=eq.${orgId}&joined_at=gte.${monthStart.toISOString()}&select=id`,
             {
               headers: {
@@ -441,7 +451,7 @@ const Dashboard = () => {
                 'Authorization': `Bearer ${accessToken}`,
               },
             }
-          ),
+          ).catch(() => ({ json: async () => [] })),
         ]);
 
         const employees = await employeesResponse.json();
@@ -2610,12 +2620,27 @@ const Dashboard = () => {
             )}
           </div>
 
-          {/* Modular Metrics Grid */}
+          {/* Modular Metrics Grid - Optimized for Mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-10">
-            {metrics.map((metric) => (
-              <MetricCard key={metric.id} metric={metric} theme={theme} loading={metricsLoading} />
+            {metrics.map((metric, index) => (
+              <div
+                key={metric.id}
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                  animation: metricsLoading ? 'none' : 'fadeIn 0.3s ease-in forwards'
+                }}
+                className={metricsLoading ? '' : 'opacity-0'}
+              >
+                <MetricCard metric={metric} theme={theme} loading={metricsLoading} />
+              </div>
             ))}
           </div>
+          <style>{`
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
 
           {/* Schedule Section */}
           <div className={`
@@ -2732,12 +2757,12 @@ const Dashboard = () => {
 
               {/* Filters - Redesigned */}
               <div className="mt-4">
-                {/* Filter Toggle Button */}
-                <div className="flex items-center justify-between mb-3">
+                {/* Filter Toggle Button and Search - Mobile Optimized */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3">
                   <button
                     onClick={() => setShowFilters(!showFilters)}
                     className={`
-                      flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
+                      flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all
                       ${theme === 'dark'
                         ? 'bg-slate-800/50 hover:bg-slate-700 text-slate-300 border border-slate-700'
                         : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
@@ -2749,10 +2774,13 @@ const Dashboard = () => {
                     {showFilters ? <ChevronRight size={16} className="rotate-90" /> : <ChevronRight size={16} />}
                   </button>
                   
-                  {/* Search - Always visible */}
+                  {/* Search - Always visible, properly contained */}
                   <div className={`
-                    flex items-center gap-2 px-3 py-2 rounded-xl flex-1 max-w-xs
-                    ${theme === 'dark' ? 'bg-slate-800/50' : 'bg-slate-100'}
+                    flex items-center gap-2 px-3 py-2 rounded-xl border w-full sm:flex-1 sm:max-w-xs
+                    ${theme === 'dark' 
+                      ? 'bg-slate-800/50 border-slate-700' 
+                      : 'bg-slate-100 border-slate-200'
+                    }
                   `}>
                     <Search size={16} className={theme === 'dark' ? 'text-slate-400' : 'text-slate-500'} />
                     <input
@@ -2929,7 +2957,11 @@ const Dashboard = () => {
                           : 'text-slate-600 border-slate-200'
                         }
                       `}>
-                        <th className="pb-4 sm:pb-6 pr-4 sm:pr-6 w-48 sm:w-64 sticky left-0 z-10 bg-inherit">
+                        <th className={`
+                          pb-4 sm:pb-6 pr-4 sm:pr-6 w-48 sm:w-64 sticky left-0 z-20
+                          ${theme === 'dark' ? 'bg-slate-900/40' : 'bg-white'}
+                          backdrop-blur-sm
+                        `}>
                           <span className="block sm:hidden">Member</span>
                           <span className="hidden sm:block">Team Member</span>
                         </th>
@@ -2968,12 +3000,14 @@ const Dashboard = () => {
                                 ${theme === 'dark' ? 'border-slate-700/50 hover:bg-slate-800/30' : 'border-slate-200 hover:bg-slate-50'}
                               `}>
                                 <td className={`
-                                  px-4 py-3 sticky left-0 z-10 font-medium
+                                  px-4 py-3 sticky left-0 z-20 font-medium
                                   ${theme === 'dark' ? 'bg-slate-900/40 text-white' : 'bg-white text-slate-900'}
+                                  backdrop-blur-sm border-r
+                                  ${theme === 'dark' ? 'border-slate-800' : 'border-slate-200'}
                                 `}>
-                                  <div className="font-bold">{employee.full_name}</div>
+                                  <div className="font-bold truncate">{employee.full_name}</div>
                                   {employee.job_title && (
-                                    <div className="text-xs text-slate-500 mt-0.5">{employee.job_title}</div>
+                                    <div className="text-xs text-slate-500 mt-0.5 truncate">{employee.job_title}</div>
                                   )}
                                 </td>
                                 {days.map((day, dayIdx) => {
