@@ -3,8 +3,30 @@ import {
   ShieldCheck, Eye, Lock, FileText, Globe, 
   Server, Cookie, Users, Clock, Mail, Check 
 } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const PrivacyPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Privacy Policy - CrewControl | Data Protection & Privacy',
+    description: 'Read CrewControl\'s privacy policy to understand how we collect, use, and protect your personal information and workforce data. Last updated: January 2026.',
+    keywords: 'privacy policy, data protection, gdpr compliance, workforce data privacy, employee data protection',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/privacy',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Privacy Policy - CrewControl',
+    description: 'Read CrewControl\'s privacy policy to understand how we protect your data.',
+    url: 'https://crewcontrol.io/privacy',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Privacy Policy', url: 'https://crewcontrol.io/privacy' },
+    ],
+  });
   const lastUpdated = "January 14, 2026";
 
   const privacySections = [
@@ -66,7 +88,12 @@ const PrivacyPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+      
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       
       {/* --- AMBIENT BACKGROUND GLOWS --- */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -193,7 +220,8 @@ const PrivacyPage = () => {
         </div>
 
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

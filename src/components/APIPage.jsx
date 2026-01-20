@@ -1,7 +1,29 @@
 import React from 'react';
 import { Code, Key, Globe, ShieldCheck, Copy, Terminal, ChevronRight, Server, Zap } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const APIPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'API Documentation - CrewControl | REST API Reference',
+    description: 'Integrate CrewControl with your existing systems using our REST API. Access workforce data, manage schedules, and sync employee information programmatically.',
+    keywords: 'crewcontrol api, rest api, api documentation, workforce management api, scheduling software api, api integration',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/api',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'API Documentation - CrewControl',
+    description: 'Integrate CrewControl with your existing systems using our REST API.',
+    url: 'https://crewcontrol.io/api',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'API', url: 'https://crewcontrol.io/api' },
+    ],
+  });
   const endpoints = [
     { method: 'GET', path: '/v1/employees', desc: 'Retrieve a list of all active crew members.', status: 200 },
     { method: 'POST', path: '/v1/shifts', desc: 'Create a new shift assignment for a team.', status: 201 },
@@ -15,7 +37,12 @@ const APIPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+      
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       
       {/* --- AMBIENT BACKGROUND GLOWS --- */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -169,7 +196,8 @@ const APIPage = () => {
 
         </aside>
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -4,8 +4,30 @@ import {
   Layout, Clock, CreditCard, 
   Headset, ArrowRight, BookOpen 
 } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const DocumentationPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Documentation - CrewControl | User Guides & Help Center',
+    description: 'Complete documentation for CrewControl. Learn how to manage your workforce, schedule shifts, invite team members, and use all features of the platform.',
+    keywords: 'crewcontrol documentation, user guide, help center, workforce management guide, scheduling software documentation',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/documentation',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Documentation - CrewControl',
+    description: 'Complete documentation and user guides for CrewControl.',
+    url: 'https://crewcontrol.io/documentation',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Documentation', url: 'https://crewcontrol.io/documentation' },
+    ],
+  });
   const [activeCategory, setActiveCategory] = useState('getting-started');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -144,7 +166,12 @@ const DocumentationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+      
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       
       {/* --- AMBIENT BACKGROUND GLOWS --- */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -289,7 +316,8 @@ const DocumentationPage = () => {
           )}
         </main>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

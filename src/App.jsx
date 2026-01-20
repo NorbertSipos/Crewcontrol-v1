@@ -6,10 +6,39 @@ import {
   UserCheck, Calendar, CheckCircle2, TrendingUp, Award, Lock, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSEO } from './hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateSoftwareApplicationSchema, generateWebPageSchema, generateFAQSchema } from './components/StructuredData';
 
 const App = () => {
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [employeeCount, setEmployeeCount] = useState(30);
+
+  // SEO Meta Tags
+  useSEO({
+    title: 'CrewControl - Workforce Management & Employee Scheduling Software',
+    description: 'Streamline your workforce with CrewControl. Drag-and-drop scheduling, time tracking, shift management, and team communication. Perfect for construction, retail, healthcare, and more.',
+    keywords: 'workforce management, employee scheduling, shift management, time tracking, team scheduling software, workforce scheduling, employee management system',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/',
+  });
+
+  // Structured Data for Rich Snippets
+  const organizationSchema = generateOrganizationSchema();
+  const softwareSchema = generateSoftwareApplicationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'CrewControl - Workforce Management & Employee Scheduling Software',
+    description: 'Streamline your workforce with CrewControl. Drag-and-drop scheduling, time tracking, shift management, and team communication.',
+    url: 'https://crewcontrol.io/',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+    ],
+  });
+  const faqSchema = generateFAQSchema([
+    { question: "How long does it take to get started?", answer: "Most teams are up and running within 24 hours. You can import your current staff list via CSV and start scheduling immediately." },
+    { question: "Does it sync with Google Calendar?", answer: "Yes! We offer 2-way sync. Shifts created in CrewControl appear in Google Calendar, and personal events can block off availability automatically." },
+    { question: "Is there a mobile app for employees?", answer: "Absolutely. We have a dedicated app for iOS and Android where staff can check shifts, swap times, and request time off." },
+    { question: "What happens if I cancel my subscription?", answer: "No contracts, no lock-ins. If you cancel, you keep access until the end of your billing cycle. We'll keep your data for 30 days in case you change your mind." },
+  ]);
 
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -35,7 +64,14 @@ const App = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col font-sans text-white bg-slate-950 selection:bg-purple-500/30 overflow-hidden">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={softwareSchema} />
+      <StructuredData data={webpageSchema} />
+      <StructuredData data={faqSchema} />
+      
+      <div className="min-h-screen flex flex-col font-sans text-white bg-slate-950 selection:bg-purple-500/30 overflow-hidden">
       
       {/* --- HERO SECTION --- */}
       <div className="relative pb-32 lg:pb-48">
@@ -894,7 +930,8 @@ const App = () => {
         </section>
 
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

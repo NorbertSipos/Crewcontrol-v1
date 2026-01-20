@@ -1,8 +1,30 @@
 import React from 'react';
 import { Zap, Check, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const IntegrationsPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Integrations - CrewControl | Connect with Your Favorite Tools',
+    description: 'Integrate CrewControl with popular business tools like QuickBooks, ADP, Xero, and more. Sync employee data, export payroll, and connect your workforce management with your existing stack.',
+    keywords: 'crewcontrol integrations, quickbooks integration, adp integration, payroll integration, workforce management integrations',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/integrations',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Integrations - CrewControl',
+    description: 'Integrate CrewControl with popular business tools like QuickBooks, ADP, and more.',
+    url: 'https://crewcontrol.io/integrations',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Integrations', url: 'https://crewcontrol.io/integrations' },
+    ],
+  });
   const integrations = [
     {
       name: 'QuickBooks',
@@ -51,7 +73,12 @@ const IntegrationsPage = () => {
   const categories = ['All', 'Payroll', 'Accounting', 'Calendar', 'Communication'];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+      
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-purple-600/10 rounded-full blur-[120px] mix-blend-screen"></div>
@@ -118,7 +145,8 @@ const IntegrationsPage = () => {
           </Link>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

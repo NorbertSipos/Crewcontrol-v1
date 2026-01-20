@@ -4,10 +4,33 @@ import {
   Check, X, Zap, Shield, Crown, HelpCircle, 
   ArrowRight, CreditCard, Sparkles, Building2, LayoutGrid, Users 
 } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const PricingPage = () => {
   const [isAnnual, setIsAnnual] = useState(true);
   const navigate = useNavigate();
+
+  // SEO Meta Tags
+  useSEO({
+    title: 'Pricing Plans - CrewControl | Simple Pricing for Teams of All Sizes',
+    description: 'Choose the perfect plan for your team. Starter plan: $19.99/mo for up to 30 employees. Professional: $49.99/mo for up to 100 employees. Enterprise: Custom pricing. 14-day free trial.',
+    keywords: 'workforce management pricing, employee scheduling pricing, team management software cost, shift management pricing',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/pricing',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Pricing Plans - CrewControl',
+    description: 'Choose the perfect plan for your team. Starter plan: $19.99/mo for up to 30 employees. Professional: $49.99/mo for up to 100 employees.',
+    url: 'https://crewcontrol.io/pricing',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Pricing', url: 'https://crewcontrol.io/pricing' },
+    ],
+  });
 
   const handleButtonClick = (planName, btnText) => {
     if (btnText.toLowerCase().includes('contact') || btnText.toLowerCase().includes('sales')) {
@@ -292,7 +315,8 @@ const PricingPage = () => {
         </div>
 
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -1,7 +1,30 @@
 import React, { useState } from 'react';
 import { Mail, MessageSquare, Phone, MapPin, Send, CheckCircle, Building2, Headphones, Zap, ArrowRight } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const ContactPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Contact Us - CrewControl | Get in Touch',
+    description: 'Get in touch with CrewControl. Contact us for sales inquiries, technical support, or partnership opportunities. We typically respond within 24 hours.',
+    keywords: 'contact crewcontrol, workforce management support, employee scheduling help, team management contact',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/contact',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Contact Us - CrewControl',
+    description: 'Get in touch with CrewControl for sales inquiries, technical support, or partnership opportunities.',
+    url: 'https://crewcontrol.io/contact',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Contact', url: 'https://crewcontrol.io/contact' },
+    ],
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -91,7 +114,12 @@ const ContactPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+      
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -409,7 +437,8 @@ const ContactPage = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

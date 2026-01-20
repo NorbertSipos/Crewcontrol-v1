@@ -1,8 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Users, Zap, Heart, ShieldCheck, BarChart3, Clock, Globe, Sparkles, Layers, Rocket, Code2, TrendingUp } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const AboutPage = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // SEO Meta Tags
+  useSEO({
+    title: 'About Us - CrewControl | Building Better Workforce Management',
+    description: 'Learn about CrewControl and our mission to simplify workforce management. We help teams of all sizes streamline scheduling, time tracking, and team communication.',
+    keywords: 'about crewcontrol, workforce management company, employee scheduling company, team management software',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/about',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'About Us - CrewControl',
+    description: 'Learn about CrewControl and our mission to simplify workforce management.',
+    url: 'https://crewcontrol.io/about',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'About', url: 'https://crewcontrol.io/about' },
+    ],
+  });
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -375,7 +398,8 @@ const AboutPage = () => {
           </div>
         </section>
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

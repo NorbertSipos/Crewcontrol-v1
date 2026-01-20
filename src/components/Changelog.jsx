@@ -1,7 +1,29 @@
 import React from 'react';
 import { Calendar, ChevronRight, Zap, Sparkles, Send, Activity, Shield, Users, Bell, Settings, CheckCircle2, ArrowRight, Star } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const ChangelogPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Changelog - CrewControl | Product Updates & New Features',
+    description: 'Stay updated with the latest CrewControl features, improvements, and updates. See what\'s new in workforce management and employee scheduling.',
+    keywords: 'crewcontrol changelog, product updates, new features, workforce management updates, scheduling software updates',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/changelog',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Changelog - CrewControl',
+    description: 'Stay updated with the latest CrewControl features, improvements, and updates.',
+    url: 'https://crewcontrol.io/changelog',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Changelog', url: 'https://crewcontrol.io/changelog' },
+    ],
+  });
   
   const updates = [
     {
@@ -31,7 +53,12 @@ const ChangelogPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+      
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       
       {/* --- AMBIENT BACKGROUND GLOWS --- */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -171,7 +198,8 @@ const ChangelogPage = () => {
         </div>
 
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

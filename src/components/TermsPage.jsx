@@ -4,8 +4,30 @@ import {
   Scale, ShieldAlert, CheckCircle2, AlertCircle, FileWarning, 
   ArrowRight, CreditCard, Ban, Server, Copyright, Users, Globe, Download 
 } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const TermsPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Terms of Service - CrewControl | Legal Terms & Conditions',
+    description: 'Read CrewControl\'s terms of service to understand the legal terms and conditions for using our workforce management platform. Last updated: January 2026.',
+    keywords: 'terms of service, legal terms, service agreement, workforce management terms, software terms',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/terms',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Terms of Service - CrewControl',
+    description: 'Read CrewControl\'s terms of service and legal terms.',
+    url: 'https://crewcontrol.io/terms',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Terms of Service', url: 'https://crewcontrol.io/terms' },
+    ],
+  });
   const lastUpdated = "January 14, 2026";
 
   // --- BUSINESS LEGAL DATA ---
@@ -185,7 +207,8 @@ const TermsPage = () => {
         </div>
 
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

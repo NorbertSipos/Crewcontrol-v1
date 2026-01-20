@@ -1,0 +1,34 @@
+# Robots.txt for CrewControl
+# Allow all search engines to crawl public pages
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /about
+Allow: /contact
+Allow: /blog
+Allow: /changelog
+Allow: /roadmap
+Allow: /documentation
+Allow: /api
+Allow: /privacy
+Allow: /terms
+Allow: /security
+Allow: /integrations
+
+# Block admin/dashboard pages from search engines
+Disallow: /dashboard
+Disallow: /schedule
+Disallow: /team
+Disallow: /build-team
+Disallow: /analytics
+Disallow: /settings
+Disallow: /signin
+Disallow: /signup
+Disallow: /complete-signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /accept-invite
+Disallow: /auth/
+
+# Sitemap location
+Sitemap: https://crewcontrol.io/sitemap.xml

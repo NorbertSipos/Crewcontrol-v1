@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom'
@@ -6,38 +6,48 @@ import { AuthProvider } from './contexts/AuthContext.jsx'
 import { ThemeProvider } from './contexts/ThemeContext.jsx'
 import { NotificationProvider } from './contexts/NotificationContext.jsx'
 
-// Import Global Layout Components
+// Import Global Layout Components (Keep these non-lazy for faster initial render)
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx' 
 
-// Import Page Components
-import LandingPage from './App.jsx' 
-import ChangelogPage from './components/Changelog.jsx'
-import RoadmapPage from './components/Roadmap.jsx'
-import DocumentationPage from './components/Documentation.jsx'
-import APIPage from './components/APIPage.jsx'
-import PrivacyPage from './components/PrivacyPage.jsx'
-import TermsPage from './components/TermsPage.jsx'
-import SecurityPage from './components/SecurityPage.jsx'
-import PricingPage from './components/PricingPage.jsx'
-import Dashboard from './components/Dashboard.jsx'
-import Schedule from './components/Schedule.jsx'
-import Team from './components/Team.jsx'
-import BuildYourTeam from './components/BuildYourTeam.jsx'
-import Analytics from './components/Analytics.jsx'
-import Settings from './components/Settings.jsx'
-import SignIn from './components/SignIn.jsx'
-import SignUp from './components/SignUp.jsx'
-import CompleteSignup from './components/CompleteSignup.jsx'
-import EmailConfirmationHandler from './components/EmailConfirmationHandler.jsx'
-import ForgotPassword from './components/ForgotPassword.jsx'
-import ResetPassword from './components/ResetPassword.jsx'
-import AcceptInvite from './components/AcceptInvite.jsx'
-import ContactPage from './components/ContactPage.jsx'
-import BlogPage from './components/BlogPage.jsx'
-import IntegrationsPage from './components/IntegrationsPage.jsx'
-import AboutPage from './components/AboutPage.jsx'
+// Lazy load page components for code splitting and better performance
+const LandingPage = lazy(() => import('./App.jsx'))
+const ChangelogPage = lazy(() => import('./components/Changelog.jsx'))
+const RoadmapPage = lazy(() => import('./components/Roadmap.jsx'))
+const DocumentationPage = lazy(() => import('./components/Documentation.jsx'))
+const APIPage = lazy(() => import('./components/APIPage.jsx'))
+const PrivacyPage = lazy(() => import('./components/PrivacyPage.jsx'))
+const TermsPage = lazy(() => import('./components/TermsPage.jsx'))
+const SecurityPage = lazy(() => import('./components/SecurityPage.jsx'))
+const PricingPage = lazy(() => import('./components/PricingPage.jsx'))
+const Dashboard = lazy(() => import('./components/Dashboard.jsx'))
+const Schedule = lazy(() => import('./components/Schedule.jsx'))
+const Team = lazy(() => import('./components/Team.jsx'))
+const BuildYourTeam = lazy(() => import('./components/BuildYourTeam.jsx'))
+const Analytics = lazy(() => import('./components/Analytics.jsx'))
+const Settings = lazy(() => import('./components/Settings.jsx'))
+const SignIn = lazy(() => import('./components/SignIn.jsx'))
+const SignUp = lazy(() => import('./components/SignUp.jsx'))
+const CompleteSignup = lazy(() => import('./components/CompleteSignup.jsx'))
+const EmailConfirmationHandler = lazy(() => import('./components/EmailConfirmationHandler.jsx'))
+const ForgotPassword = lazy(() => import('./components/ForgotPassword.jsx'))
+const ResetPassword = lazy(() => import('./components/ResetPassword.jsx'))
+const AcceptInvite = lazy(() => import('./components/AcceptInvite.jsx'))
+const ContactPage = lazy(() => import('./components/ContactPage.jsx'))
+const BlogPage = lazy(() => import('./components/BlogPage.jsx'))
+const IntegrationsPage = lazy(() => import('./components/IntegrationsPage.jsx'))
+const AboutPage = lazy(() => import('./components/AboutPage.jsx'))
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-slate-400">Loading...</p>
+    </div>
+  </div>
+)
 
 // --- MARKETING LAYOUT WRAPPER ---
 // Ez a komponens felelős azért, hogy a Navbar és Footer csak a marketing oldalakon látszódjon
@@ -55,46 +65,46 @@ function Main() {
   return (
     <Router>
       <ScrollToTop />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* --- 1. CSOPORT: MARKETING OLDALAK (Navbar + Footer látszik) --- */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/changelog" element={<ChangelogPage />} />
+            <Route path="/roadmap" element={<RoadmapPage />} />
+            <Route path="/documentation" element={<DocumentationPage />} />
+            <Route path="/api" element={<APIPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/integrations" element={<IntegrationsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+          </Route>
 
-      <Routes>
-        {/* --- 1. CSOPORT: MARKETING OLDALAK (Navbar + Footer látszik) --- */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/changelog" element={<ChangelogPage />} />
-          <Route path="/roadmap" element={<RoadmapPage />} />
-          <Route path="/documentation" element={<DocumentationPage />} />
-          <Route path="/api" element={<APIPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/security" element={<SecurityPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/integrations" element={<IntegrationsPage />} />
-          <Route path="/about" element={<AboutPage />} />
-        </Route>
+          {/* --- 2. CSOPORT: AUTH PAGES (Navbar + Footer NINCS) --- */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/complete-signup" element={<CompleteSignup />} />
+          <Route path="/auth/callback" element={<EmailConfirmationHandler />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* --- 2. CSOPORT: AUTH PAGES (Navbar + Footer NINCS) --- */}
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/complete-signup" element={<CompleteSignup />} />
-        <Route path="/auth/callback" element={<EmailConfirmationHandler />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-
-        {/* --- 3. CSOPORT: DASHBOARD (Navbar + Footer NINCS) --- */}
-        {/* Mivel ez kívül van a PublicLayout-on, teljesen üres lappal indul */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/schedule" element={<Schedule />} />
-        <Route path="/team" element={<Team />} />
-        <Route path="/build-team" element={<BuildYourTeam />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/settings" element={<Settings />} />
-        
-        {/* --- 4. CSOPORT: INVITATION ACCEPTANCE --- */}
-        <Route path="/accept-invite" element={<AcceptInvite />} />
-      </Routes>
-      
+          {/* --- 3. CSOPORT: DASHBOARD (Navbar + Footer NINCS) --- */}
+          {/* Mivel ez kívül van a PublicLayout-on, teljesen üres lappal indul */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/build-team" element={<BuildYourTeam />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/settings" element={<Settings />} />
+          
+          {/* --- 4. CSOPORT: INVITATION ACCEPTANCE --- */}
+          <Route path="/accept-invite" element={<AcceptInvite />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

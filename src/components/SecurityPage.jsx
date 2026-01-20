@@ -1,8 +1,30 @@
 import React from 'react';
 import { jsPDF } from "jspdf";
 import { ShieldCheck, Lock, Server, Eye, FileCheck, Smartphone, Check, ArrowRight, Shield } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const SecurityPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Security - CrewControl | Enterprise Security & Data Protection',
+    description: 'Learn about CrewControl\'s security practices, data encryption, compliance certifications, and enterprise-grade security measures for protecting your workforce data.',
+    keywords: 'security, data encryption, soc 2, iso 27001, enterprise security, data protection, cybersecurity',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/security',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Security - CrewControl',
+    description: 'Learn about CrewControl\'s security practices and data protection measures.',
+    url: 'https://crewcontrol.io/security',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Security', url: 'https://crewcontrol.io/security' },
+    ],
+  });
   
   // --- WHITEPAPER CONTENT (Unchanged Data) ---
   const whitepaperData = [
@@ -255,7 +277,8 @@ const SecurityPage = () => {
         </div>
 
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -1,7 +1,29 @@
 import React, { useState } from 'react';
 import { Calendar, CheckCircle2, Clock, ArrowRight, Zap, Rocket, Target, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const Roadmap = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Product Roadmap - CrewControl | Upcoming Features & Development',
+    description: 'Explore CrewControl\'s product roadmap. See what features are coming next, what we\'re working on, and our vision for the future of workforce management.',
+    keywords: 'crewcontrol roadmap, product roadmap, upcoming features, workforce management roadmap, scheduling software roadmap',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/roadmap',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Product Roadmap - CrewControl',
+    description: 'Explore CrewControl\'s product roadmap and upcoming features.',
+    url: 'https://crewcontrol.io/roadmap',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Roadmap', url: 'https://crewcontrol.io/roadmap' },
+    ],
+  });
   const [expandedPhase, setExpandedPhase] = useState('in-progress');
 
   const roadmapItems = [
@@ -112,7 +134,12 @@ const Roadmap = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
+    <>
+      {/* Structured Data for SEO Rich Snippets */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={webpageSchema} />
+      
+      <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-indigo-900/20 rounded-full blur-[120px] mix-blend-screen"></div>
@@ -289,7 +316,8 @@ const Roadmap = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -1,7 +1,29 @@
 import React from 'react';
 import { BookOpen, Calendar, ArrowRight } from 'lucide-react';
+import { useSEO } from '../hooks/useSEO';
+import { StructuredData, generateOrganizationSchema, generateWebPageSchema } from './StructuredData';
 
 const BlogPage = () => {
+  // SEO Meta Tags
+  useSEO({
+    title: 'Blog - CrewControl | Workforce Management Insights & Resources',
+    description: 'Read articles, guides, and insights about workforce management, employee scheduling, team management best practices, and industry trends.',
+    keywords: 'workforce management blog, scheduling tips, team management articles, hr insights, workforce planning',
+    ogImage: 'https://crewcontrol.io/dashboard-screenshot.png',
+    canonical: 'https://crewcontrol.io/blog',
+  });
+
+  // Structured Data
+  const organizationSchema = generateOrganizationSchema();
+  const webpageSchema = generateWebPageSchema({
+    name: 'Blog - CrewControl',
+    description: 'Read articles and insights about workforce management and employee scheduling.',
+    url: 'https://crewcontrol.io/blog',
+    breadcrumbs: [
+      { name: 'Home', url: 'https://crewcontrol.io/' },
+      { name: 'Blog', url: 'https://crewcontrol.io/blog' },
+    ],
+  });
   return (
     <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden font-sans selection:bg-purple-500/30">
       {/* Background Effects */}
@@ -43,7 +65,8 @@ const BlogPage = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 };
 
